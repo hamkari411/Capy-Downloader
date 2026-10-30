@@ -1,24 +1,31 @@
-# Capy YT Downloader
+# Capy Downloader
 
-Extensión para **Brave** y **Firefox** que descarga videos de YouTube en cualquier resolución disponible (de 144p a 4K/8K) o solo el audio (MP3, M4A u original).
+Extensión para **Brave** y **Firefox** que descarga videos de **YouTube, TikTok e Instagram** en cualquier resolución disponible o solo el audio (MP3, M4A u original).
 
-> Úsala con tu propio contenido, videos con licencia libre (Creative Commons) o material que tengas permiso de descargar. Los términos de YouTube no permiten descargar contenido ajeno sin autorización, y resubir videos de otros puede costarte strikes en tu canal.
+> Antes se llamaba **Capy YT Downloader**. Desde la versión 1.2 es multiplataforma y pasó a llamarse **Capy Downloader**. Detalles en el [CHANGELOG](CHANGELOG.md).
+
+> Úsala con tu propio contenido, videos con licencia libre (Creative Commons) o material que tengas permiso de descargar. Los términos de YouTube, TikTok e Instagram no permiten descargar contenido ajeno sin autorización, y resubir videos de otros puede costarte sanciones en tu cuenta.
 
 ---
 
 ## Qué hace
 
-- Detecta el video que tienes abierto (video normal, Short o directo).
+- Detecta el video que tienes abierto:
+  - **YouTube**: videos normales, Shorts y directos.
+  - **TikTok**: videos públicos, siempre **sin marca de agua**.
+  - **Instagram**: reels y publicaciones **públicas**. No usa tu sesión, así que Instagram a veces bloquea la descarga; ver [Problemas comunes](docs/PROBLEMAS.md).
 - Muestra todas las resoluciones disponibles con fps, códec y tamaño aproximado.
 - Descarga el **video con audio** en MP4. Cuando existe, prefiere H.264, que funciona en cualquier editor (CapCut, Premiere, DaVinci).
 - Descarga **solo el audio** en:
   - **MP3** a 320 kbps, compatible con todo.
   - **M4A** (AAC), mejor calidad por tamaño.
-  - **Original**, tal cual viene de YouTube, sin convertir.
+  - **Original**, tal cual viene de la plataforma, sin convertir.
+- **Nada sale con marca de agua**: YouTube e Instagram no la añaden y de TikTok solo se descarga la versión limpia.
 - Muestra una barra de progreso con velocidad y tiempo restante, y el porcentaje sobre el icono.
 - La descarga sigue aunque cierres el popup.
 - Guarda el archivo directo en tu carpeta **Descargas** (sin crear subcarpetas), o en la carpeta que elijas en **Ajustes**.
 - Tiene **temas de color**: Cyberpunk, Azul (claro u oscuro según el sistema), Matrix y Ámbar, más un color de acento personalizado.
+- **Se mantiene al día sola**: actualiza yt-dlp automáticamente una vez al día para que las descargas no se rompan cuando las plataformas cambian.
 
 ## Cómo funciona
 
@@ -33,12 +40,12 @@ La extensión tiene dos partes que se comunican entre sí:
 +--------------------------+              +--------------------------+
 ```
 
-**Por qué dos partes:** desde 720p, YouTube entrega el video y el audio como archivos separados, y además cifra los enlaces de descarga. Una extensión sola no puede unirlos ni descifrarlos de forma fiable. Por eso:
+**Por qué dos partes:** desde 720p, YouTube (e Instagram) entregan el video y el audio como archivos separados, y YouTube además cifra los enlaces de descarga. Una extensión sola no puede unirlos ni descifrarlos de forma fiable. Por eso:
 
 1. **La extensión** (`extension/`) es solo la interfaz. Lee la URL de la pestaña y muestra opciones y progreso.
-2. **El programa local** (`host/yt_host.py`) usa [yt-dlp](https://github.com/yt-dlp/yt-dlp), que se mantiene al día con los cambios de YouTube, para obtener los formatos y descargar.
+2. **El programa local** (`host/yt_host.py`) usa [yt-dlp](https://github.com/yt-dlp/yt-dlp), que se mantiene al día con los cambios de cada plataforma, para obtener los formatos y descargar.
 3. **FFmpeg** une el video con el audio y convierte a MP3/M4A.
-4. Se comunican por **Native Messaging**, el mecanismo oficial de los navegadores para hablar con programas instalados en la PC. Lo único que viaja es la URL del video y la ruta del archivo final. Nada sale de tu computadora salvo la descarga desde YouTube.
+4. Se comunican por **Native Messaging**, el mecanismo oficial de los navegadores para hablar con programas instalados en la PC. Lo único que viaja es la URL del video y la ruta del archivo final. Nada sale de tu computadora salvo la descarga desde la plataforma y la actualización diaria de yt-dlp desde PyPI.
 
 ### Estructura
 
@@ -103,7 +110,7 @@ Al final deberías ver líneas como `Registrado en ...` y `FFmpeg encontrado.`
 2. Activa **Modo de desarrollador** (arriba a la derecha).
 3. Pulsa **Cargar descomprimida** y elige la carpeta `dist/brave`.
 4. Cierra Brave **por completo** y vuelve a abrirlo.
-5. Pulsa el icono de rompecabezas y fija **Capy YT Downloader**.
+5. Pulsa el icono de rompecabezas y fija **Capy Downloader**.
 
 ### Paso 3B. Cárgala en Firefox
 
@@ -118,7 +125,7 @@ Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
 
 ### Paso 4. Úsala
 
-1. Abre un video de YouTube.
+1. Abre un video de YouTube, TikTok o un reel de Instagram.
 2. Haz clic en el icono de la extensión.
 3. Elige una resolución o un formato de audio.
 4. El archivo queda en tu carpeta **Descargas**, o en la que hayas elegido.
@@ -129,12 +136,17 @@ Pulsa el engranaje del popup (o el enlace **Cambiar** junto a la carpeta) y se d
 
 - **Elegir la carpeta de descargas** con el botón **Elegir carpeta**, que abre el selector de carpetas de tu sistema. También puedes escribir la ruta a mano y pulsar **Guardar ruta escrita**, o volver a **Descargas**.
 - **Cambiar el color de la interfaz**: elige un tema y, si quieres, un color de acento propio.
+- **Ver la versión de yt-dlp**, activar o desactivar la actualización automática y **actualizar al momento**.
 
 ---
 
 ## Problemas comunes
 
 Mira la guía en [docs/PROBLEMAS.md](docs/PROBLEMAS.md).
+
+## Mantenimiento
+
+Cómo se mantiene al día la extensión, cómo actualizarla y qué hacer si una plataforma deja de funcionar: [docs/MANTENIMIENTO.md](docs/MANTENIMIENTO.md).
 
 ## Novedades
 
