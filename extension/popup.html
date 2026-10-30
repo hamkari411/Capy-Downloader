@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header id="video" hidden>
+    <img id="thumb" alt="">
+    <div>
+      <h1 id="title"></h1>
+      <p id="meta"></p>
+    </div>
+  </header>
+
+  <p id="status" class="status">Leyendo el video…</p>
+
+  <section id="formats" hidden>
+    <h2>Video con audio</h2>
+    <ul id="videos" class="list"></ul>
+
+    <h2>Solo audio</h2>
+    <ul class="list audio">
+      <li><button data-audio="mp3"><strong>MP3</strong><span>320 kbps, funciona en todo</span></button></li>
+      <li><button data-audio="m4a"><strong>M4A</strong><span>AAC, mejor calidad por tamaño</span></button></li>
+      <li><button data-audio="original"><strong>Original</strong><span>Tal cual viene de YouTube, sin convertir</span></button></li>
+    </ul>
+  </section>
+
+  <section id="jobs-wrap" hidden>
+    <div class="jobs-head">
+      <h2>Descargas</h2>
+      <button id="clear" class="link">Limpiar terminadas</button>
+    </div>
+    <ul id="jobs"></ul>
+    <button id="folder" class="link">Abrir carpeta de descargas</button>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

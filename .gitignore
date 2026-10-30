@@ -1,0 +1,8 @@
+# Generados por install.py (contienen rutas de tu PC)
+host/yt_host.bat
+host/yt_host.sh
+host/com.capybara.ytdl.*.json
+__pycache__/
+*.pyc
+*.zip
+*.xpi
