@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 HOST = "com.capybara.ytdl"
-EXTENSION_ID = "ldgecmpmlnfphpgecepjjnlkibkfkncc"  # Brave/Chrome: fijo gracias a la "key" del manifest.json
+EXTENSION_ID = "ldgecmpmlnfphpgecepjjnlkibkfkncc"  # Brave/Chrome: fijo gracias a la clave pública de build.py
 FIREFOX_ID = "capy-ytdl@capybara"                  # Firefox: browser_specific_settings.gecko.id
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -100,8 +100,15 @@ def check_ffmpeg():
         print("  Instálalo con:  sudo apt install ffmpeg")
 
 
+def build_extension():
+    sys.path.insert(0, os.path.dirname(HERE))
+    import build
+    build.main()
+
+
 if __name__ == "__main__":
     install_ytdlp()
+    build_extension()
     register(write_manifests(write_launcher()))
     check_ffmpeg()
     print("\nListo. Cierra por completo Brave y/o Firefox y vuelve a abrirlos.")
