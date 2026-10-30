@@ -11,3 +11,9 @@ Instálalo (ver requisitos en el README), cierra la terminal y reinicia el naveg
 
 **Python no se reconoce como comando**
 Reinstala Python marcando la casilla Add Python to PATH.
+
+**La carpeta de descargas no existe**
+La carpeta que elegiste en Ajustes se borró o cambió de nombre. Abre Ajustes y elige otra.
+
+**El botón Elegir carpeta no abre nada**
+En algunas instalaciones de Python en Linux falta tkinter. Escribe la ruta a mano y pulsa Guardar ruta escrita.
