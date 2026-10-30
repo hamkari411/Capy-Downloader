@@ -2,7 +2,7 @@
 <html lang="es" data-theme="cyber">
 <head>
   <meta charset="utf-8">
-  <title>Ajustes de Capy YT Downloader</title>
+  <title>Ajustes de Capy Downloader</title>
   <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="options.css">
 </head>
@@ -38,6 +38,17 @@
         <span id="accentLabel" class="hint">Usando el color del tema</span>
         <button id="resetAccent" class="link">Usar color del tema</button>
       </div>
+    </section>
+
+    <section>
+      <h2>Motor de descargas (yt-dlp)</h2>
+      <p class="hint">YouTube, TikTok e Instagram cambian seguido. Mantener yt-dlp al día evita que las descargas fallen.</p>
+      <p>Versión instalada: <strong id="ytVer">…</strong> <span id="ytLast" class="hint"></span></p>
+      <label class="check"><input id="autoUpdate" type="checkbox" checked> Actualizar automáticamente (como mucho una vez al día)</label>
+      <div class="row" style="margin-top:12px">
+        <button id="updateNow" class="primary">Actualizar ahora</button>
+      </div>
+      <p id="updMsg" class="msg" role="status"></p>
     </section>
 
     <p class="version">Versión <span id="ver"></span></p>

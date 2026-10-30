@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Capy YT Downloader",
-  "version": "1.1.0",
-  "description": "Descarga videos de YouTube en cualquier resolución o solo el audio, usando yt-dlp en tu PC.",
+  "name": "Capy Downloader",
+  "version": "1.2.0",
+  "description": "Descarga videos de YouTube, TikTok e Instagram en cualquier resolución o solo el audio, usando yt-dlp en tu PC.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
