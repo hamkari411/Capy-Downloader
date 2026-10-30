@@ -22,17 +22,23 @@ function friendlyError(err) {
     return /Acción desconocida/i.test(e)
       ? 'El programa local es de una versión anterior.\nEjecuta "python install.py" otra vez y reinicia el navegador.'
       : e;
+  if (/^Instagram no dejó|solo está disponible con marca de agua/i.test(e)) return e;
   if (/private|unavailable/i.test(e)) return 'Este video es privado o no está disponible.';
   return e;
 }
 
-function isYouTube(url) {
+// Devuelve la plataforma del enlace o null si no es un video compatible.
+function platformOf(url) {
   try {
     const u = new URL(url);
-    if (u.hostname === 'youtu.be') return true;
-    if (!/(^|\.)youtube\.com$/.test(u.hostname)) return false;
-    return u.pathname === '/watch' || u.pathname.startsWith('/shorts/') || u.pathname.startsWith('/live/');
-  } catch { return false; }
+    const h = u.hostname, p = u.pathname;
+    if (u.protocol !== 'https:') return null;
+    if (h === 'youtu.be') return 'YouTube';
+    if (/(^|\.)youtube\.com$/.test(h) && (p === '/watch' || /^\/(shorts|live)\//.test(p))) return 'YouTube';
+    if (/(^|\.)tiktok\.com$/.test(h) && (/\/video\/\d+/.test(p) || /^(vm|vt)\./.test(h) || p.startsWith('/t/'))) return 'TikTok';
+    if (/(^|\.)instagram\.com$/.test(h) && /^\/(reel|reels|p|tv)\//.test(p)) return 'Instagram';
+  } catch {}
+  return null;
 }
 
 function fmtDuration(s) {
@@ -49,14 +55,15 @@ function renderInfo(info) {
   $('#video').hidden = false;
   $('#thumb').src = info.thumbnail || '';
   $('#title').textContent = info.title || 'Sin título';
-  $('#meta').textContent = [info.channel, fmtDuration(info.duration)].filter(Boolean).join(', ');
+  $('#meta').textContent = [current.platform, info.channel, fmtDuration(info.duration)].filter(Boolean).join(', ');
 
   const ul = $('#videos');
   ul.innerHTML = '';
   for (const v of info.videos) {
     const li = document.createElement('li');
     const b = document.createElement('button');
-    const tag = [label(v.height), v.fps > 30 ? v.fps + ' fps' : '', v.codec].filter(Boolean).join(', ');
+    const wmTag = current.platform === 'TikTok' ? 'sin marca de agua' : '';
+    const tag = [label(v.height), v.fps > 30 ? v.fps + ' fps' : '', v.codec, wmTag].filter(Boolean).join(', ');
     const strong = document.createElement('strong');
     strong.textContent = `${Number(v.height)}p`;
     const span = document.createElement('span');
@@ -207,12 +214,17 @@ chrome.storage.onChanged.addListener((changes, area) => {
   renderJobs(jobs);
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.url || !isYouTube(tab.url)) {
-    setStatus('Abre un video de YouTube (normal, Short o directo) y vuelve a pulsar el icono.');
+  const platform = tab?.url ? platformOf(tab.url) : null;
+  if (!platform) {
+    setStatus('Abre un video de YouTube, TikTok o un reel de Instagram y vuelve a pulsar el icono.');
     return;
   }
+  setStatus(`Leyendo el video de ${platform}…`);
+  // Si yt-dlp se está actualizando (una vez al día), la primera lectura tarda un poco más.
+  const slow = setTimeout(() => setStatus(`Leyendo el video de ${platform}…\nPuede tardar unos segundos si yt-dlp se está actualizando.`), 4000);
   const r = await chrome.runtime.sendMessage({ cmd: 'info', url: tab.url });
+  clearTimeout(slow);
   if (!r?.ok) { setStatus(friendlyError(r?.error), true); return; }
-  current = { url: tab.url, info: r.data };
+  current = { url: tab.url, info: r.data, platform };
   renderInfo(r.data);
 })();
