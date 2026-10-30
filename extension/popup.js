@@ -11,13 +11,17 @@ function setStatus(text, isError = false) {
 function friendlyError(err) {
   const e = String(err || '');
   if (/native messaging host not found|not found/i.test(e))
-    return 'No encuentro el programa local.\nEjecuta "python install.py" en la carpeta host y reinicia Brave.';
+    return 'No encuentro el programa local.\nEjecuta "python install.py" en la carpeta host y reinicia el navegador.';
   if (/forbidden|access to the specified native/i.test(e))
     return 'El programa local no reconoce esta extensión.\nVuelve a ejecutar "python install.py".';
   if (/yt-dlp no está instalado/i.test(e)) return e;
   if (/ffmpeg/i.test(e)) return 'Falta FFmpeg: es necesario para unir video y audio y para convertir a MP3.';
   if (/not a bot|sign in/i.test(e))
     return 'YouTube pidió verificación.\nActualiza yt-dlp: python -m pip install -U yt-dlp';
+  if (/carpeta de descargas no existe|selector de carpetas|Acción desconocida/i.test(e))
+    return /Acción desconocida/i.test(e)
+      ? 'El programa local es de una versión anterior.\nEjecuta "python install.py" otra vez y reinicia el navegador.'
+      : e;
   if (/private|unavailable/i.test(e)) return 'Este video es privado o no está disponible.';
   return e;
 }
@@ -53,9 +57,13 @@ function renderInfo(info) {
     const li = document.createElement('li');
     const b = document.createElement('button');
     const tag = [label(v.height), v.fps > 30 ? v.fps + ' fps' : '', v.codec].filter(Boolean).join(', ');
-    b.innerHTML = `<strong>${v.height}p</strong><span></span><em></em>`;
-    b.querySelector('span').textContent = tag;
-    b.querySelector('em').textContent = v.size || '';
+    const strong = document.createElement('strong');
+    strong.textContent = `${Number(v.height)}p`;
+    const span = document.createElement('span');
+    span.textContent = tag;
+    const em = document.createElement('em');
+    em.textContent = v.size || '';
+    b.append(strong, span, em);
     b.addEventListener('click', () => startDownload({ kind: 'video', height: v.height, label: `${v.height}p` }));
     li.appendChild(b);
     ul.appendChild(li);
@@ -95,7 +103,9 @@ function renderJobs(jobs) {
     if (j.status === 'running') {
       const bar = document.createElement('div');
       bar.className = 'bar';
-      bar.innerHTML = `<i style="width:${j.percent || 0}%"></i>`;
+      const fill = document.createElement('i');
+      fill.style.width = `${Math.min(100, Math.max(0, Number(j.percent) || 0))}%`;
+      bar.appendChild(fill);
       li.appendChild(bar);
       const parts = [j.stage, `${Math.floor(j.percent || 0)}%`, j.speed && j.speed + '/s', j.eta != null && `${j.eta} s restantes`];
       sub.textContent = parts.filter(Boolean).join(', ');
@@ -116,6 +126,69 @@ function renderJobs(jobs) {
   }
 }
 
+// ---- Panel de ajustes desplegable ----
+function togglePanel(force) {
+  const panel = $('#panel');
+  const open = force ?? panel.hidden;
+  panel.hidden = !open;
+  $('#settings').setAttribute('aria-expanded', String(open));
+}
+
+function showDir(dir) {
+  const text = dir || 'Descargas';
+  $('#panelDir').textContent = text;
+  $('#destPath').textContent = text;
+}
+
+function panelMsg(text, isError = false) {
+  const el = $('#panelMsg');
+  el.textContent = text || '';
+  el.classList.toggle('error', isError);
+}
+
+function renderChips(current) {
+  const box = $('#themeChips');
+  box.textContent = '';
+  for (const [id, t] of Object.entries(CAPY_THEMES)) {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.title = t.name;
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-label', t.name);
+    b.setAttribute('aria-checked', String(id === current));
+    for (const c of t.swatch) {
+      const i = document.createElement('i');
+      i.style.background = c;
+      b.appendChild(i);
+    }
+    b.addEventListener('click', async () => {
+      await chrome.storage.local.set({ theme: id, accent: '' });
+      renderChips(id);
+    });
+    box.appendChild(b);
+  }
+}
+
+$('#settings').addEventListener('click', () => togglePanel());
+$('#changeDir').addEventListener('click', () => togglePanel(true));
+$('#moreSettings').addEventListener('click', () => chrome.runtime.sendMessage({ cmd: 'open_options' }));
+$('#resetDir').addEventListener('click', async () => {
+  await chrome.storage.local.set({ downloadDir: '' });
+  panelMsg('Las descargas irán a Descargas.');
+});
+$('#pickDir').addEventListener('click', async () => {
+  panelMsg('Se abrirá una ventana para elegir la carpeta. Si el popup se cierra, la carpeta se guarda igual.');
+  const { downloadDir } = await chrome.storage.local.get({ downloadDir: '' });
+  const r = await chrome.runtime.sendMessage({ cmd: 'pick_folder', initial: downloadDir });
+  if (!r?.ok) panelMsg(friendlyError(r?.error), true);
+  else if (!r.path) panelMsg('No elegiste ninguna carpeta.');
+  else panelMsg('Carpeta guardada.');
+});
+
+chrome.storage.onChanged.addListener((c, area) => {
+  if (area === 'local' && c.downloadDir) showDir(c.downloadDir.newValue);
+});
+
 $('#clear').addEventListener('click', () => chrome.runtime.sendMessage({ cmd: 'clear' }));
 $('#folder').addEventListener('click', () => chrome.runtime.sendMessage({ cmd: 'open', path: null }));
 
@@ -125,6 +198,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 (async function init() {
   chrome.runtime.sendMessage({ cmd: 'seen' });
+  const settings = await capyLoadSettings();
+  showDir(settings.downloadDir);
+  renderChips(settings.theme);
+  const { pickError } = await chrome.storage.local.get({ pickError: '' });
+  if (pickError) { togglePanel(true); panelMsg(friendlyError(pickError), true); chrome.storage.local.set({ pickError: '' }); }
   const { jobs } = await chrome.storage.session.get('jobs');
   renderJobs(jobs);
 
