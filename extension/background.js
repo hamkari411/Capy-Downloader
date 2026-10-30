@@ -13,11 +13,17 @@ function save() {
   updateBadge();
 }
 
+let accentColor = '#FF2BD6';
+chrome.storage.local.get({ accentColor: '#FF2BD6' }).then(r => { accentColor = r.accentColor; updateBadge(); });
+chrome.storage.onChanged.addListener((c, area) => {
+  if (area === 'local' && c.accentColor) { accentColor = c.accentColor.newValue; updateBadge(); }
+});
+
 function updateBadge() {
   const running = Object.values(jobs).filter(j => j.status === 'running');
   if (running.length) {
     const p = Math.floor(running[running.length - 1].percent || 0);
-    chrome.action.setBadgeBackgroundColor({ color: '#2F6FEB' });
+    chrome.action.setBadgeBackgroundColor({ color: accentColor });
     chrome.action.setBadgeText({ text: p + '%' });
   } else if (Object.values(jobs).some(j => j.status === 'error' && !j.seen)) {
     chrome.action.setBadgeBackgroundColor({ color: '#D1352B' });
@@ -96,6 +102,29 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     return true;
   }
 
+  if (m.cmd === 'pick_folder' || m.cmd === 'default_dir') {
+    // El fondo hace la petición y guarda el resultado él mismo: así funciona
+    // aunque el popup se cierre cuando aparece la ventana del selector.
+    chrome.storage.local.set({ pickError: '' });
+    request(m.cmd, { initial: m.initial || '' })
+      .then(async r => {
+        if (m.cmd === 'pick_folder' && r.path) await chrome.storage.local.set({ downloadDir: r.path });
+        reply({ ok: true, path: r.path });
+      })
+      .catch(async e => {
+        if (m.cmd === 'pick_folder') await chrome.storage.local.set({ pickError: String(e) });
+        reply({ ok: false, error: String(e) });
+      });
+    return true;
+  }
+
+  if (m.cmd === 'open_options') {
+    chrome.runtime.openOptionsPage()
+      .catch(() => chrome.tabs.create({ url: chrome.runtime.getURL('options.html') }));
+    reply({ ok: true });
+    return false;
+  }
+
   if (m.cmd === 'download') {
     const id = newId('dl');
     jobs[id] = {
@@ -103,23 +132,26 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
       percent: 0, stage: 'Iniciando', created: Date.now()
     };
     save();
-    try {
-      connect().postMessage({
-        id, action: 'download', url: m.url,
-        kind: m.kind, height: m.height, audio: m.audio
-      });
-      reply({ ok: true, id });
-    } catch (e) {
-      jobs[id].status = 'error';
-      jobs[id].error = e.message || String(e);
-      save();
-      reply({ ok: false, error: jobs[id].error });
-    }
+    chrome.storage.local.get({ downloadDir: '' }).then(({ downloadDir }) => {
+      try {
+        connect().postMessage({
+          id, action: 'download', url: m.url,
+          kind: m.kind, height: m.height, audio: m.audio, folder: downloadDir
+        });
+        reply({ ok: true, id });
+      } catch (e) {
+        jobs[id].status = 'error';
+        jobs[id].error = e.message || String(e);
+        save();
+        reply({ ok: false, error: jobs[id].error });
+      }
+    });
     return true;
   }
 
   if (m.cmd === 'open') {
-    request('open', { path: m.path }).catch(() => {});
+    chrome.storage.local.get({ downloadDir: '' }).then(({ downloadDir }) =>
+      request('open', { path: m.path, folder: downloadDir }).catch(() => {}));
     reply({ ok: true });
     return false;
   }
