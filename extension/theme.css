@@ -1,0 +1,33 @@
+/* Temas de color. El tema se aplica con <html data-theme="..."> y el acento
+   personalizado con la variable --accent en línea (ver theme.js). */
+:root, [data-theme="cyber"] {
+  --bg: #0B0A16; --surface: #15132A; --ink: #EDE9FF; --muted: #9C95C9;
+  --line: #2B2650; --accent: #FF2BD6; --accent2: #00E5FF;
+  --danger: #FF4D6D; --ok: #39FF9F; --glow: 0 0 12px;
+  color-scheme: dark;
+}
+[data-theme="azul"] {
+  --bg: #EEF1F5; --surface: #FFFFFF; --ink: #1C2433; --muted: #5B6578;
+  --line: #D5DBE4; --accent: #2F6FEB; --accent2: #2F6FEB;
+  --danger: #C4302B; --ok: #1F8A4C; --glow: 0 0 0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  [data-theme="azul"] {
+    --bg: #161B24; --surface: #202734; --ink: #E7ECF3; --muted: #9AA4B5;
+    --line: #313A4A; --accent: #6B9BFF; --accent2: #6B9BFF; --danger: #FF6F66; --ok: #4CC584;
+    color-scheme: dark;
+  }
+}
+[data-theme="matrix"] {
+  --bg: #050D07; --surface: #0B1A0F; --ink: #D7FFE0; --muted: #7FB08A;
+  --line: #163222; --accent: #39FF7A; --accent2: #B6FF39;
+  --danger: #FF5C5C; --ok: #39FF7A; --glow: 0 0 10px;
+  color-scheme: dark;
+}
+[data-theme="ambar"] {
+  --bg: #140E05; --surface: #21170A; --ink: #FFF1D6; --muted: #C2A877;
+  --line: #3A2A12; --accent: #FFB020; --accent2: #FF6A00;
+  --danger: #FF5C5C; --ok: #9BE15D; --glow: 0 0 10px;
+  color-scheme: dark;
+}

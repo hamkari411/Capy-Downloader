@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es" data-theme="cyber">
+<head>
+  <meta charset="utf-8">
+  <title>Ajustes de Capy YT Downloader</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <img src="icons/icon48.png" alt="" width="48" height="48">
+      <h1>Ajustes</h1>
+    </header>
+
+    <section>
+      <h2>Carpeta de descargas</h2>
+      <p class="hint">Los archivos se guardan directo en esta carpeta, sin crear subcarpetas.</p>
+      <div class="row">
+        <input id="dir" type="text" spellcheck="false" placeholder="Carpeta Descargas">
+        <button id="pick" class="primary">Elegir carpeta</button>
+      </div>
+      <div class="row small">
+        <button id="saveDir" class="link">Guardar ruta escrita</button>
+        <button id="resetDir" class="link">Usar Descargas</button>
+        <button id="openDir" class="link">Abrir carpeta</button>
+      </div>
+      <p id="dirMsg" class="msg" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Color de la interfaz</h2>
+      <div id="themes" class="themes" role="radiogroup" aria-label="Tema"></div>
+
+      <h3>Color de acento</h3>
+      <div class="row">
+        <input id="accent" type="color" value="#FF2BD6" aria-label="Color de acento">
+        <span id="accentLabel" class="hint">Usando el color del tema</span>
+        <button id="resetAccent" class="link">Usar color del tema</button>
+      </div>
+    </section>
+
+    <p class="version">Versión <span id="ver"></span></p>
+  </main>
+  <script src="theme.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
