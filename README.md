@@ -17,7 +17,8 @@ Extensión para **Brave** y **Firefox** que descarga videos de YouTube en cualqu
   - **Original**, tal cual viene de YouTube, sin convertir.
 - Muestra una barra de progreso con velocidad y tiempo restante, y el porcentaje sobre el icono.
 - La descarga sigue aunque cierres el popup.
-- Guarda todo en `Descargas/YouTube` y tiene un botón para abrir el archivo.
+- Guarda el archivo directo en tu carpeta **Descargas** (sin crear subcarpetas), o en la carpeta que elijas en **Ajustes**.
+- Tiene **temas de color**: Cyberpunk, Azul (claro u oscuro según el sistema), Matrix y Ámbar, más un color de acento personalizado.
 
 ## Cómo funciona
 
@@ -44,9 +45,13 @@ La extensión tiene dos partes que se comunican entre sí:
 ```
 capy-yt-downloader/
 |-- extension/          <- lo que se carga en el navegador
-|   |-- manifest.json   (sirve para Brave y Firefox)
+|   |-- manifest.base.json  (base; build.py crea el de cada navegador)
 |   |-- background.js   (conexion con el programa local)
-|   `-- popup.html/css/js
+|   |-- popup.html/css/js
+|   |-- options.html/css/js  (pagina de Ajustes)
+|   |-- theme.css/js    (temas de color)
+|   `-- icons/
+|-- build.py            <- genera dist/brave y dist/firefox
 `-- host/               <- el programa que corre en tu PC
     |-- yt_host.py      (descarga con yt-dlp)
     `-- install.py      (lo registra en Brave, Chrome y Firefox)
@@ -72,7 +77,7 @@ Descarga este repositorio (botón **Code > Download ZIP**) o clónalo:
 git clone https://github.com/hamkari411/capy-yt-downloader.git
 ```
 
-Guárdalo en una carpeta fija, por ejemplo `D:\Proyectos\capy-yt-downloader`. **No la muevas después**; si lo haces, repite el paso 2.
+Guárdalo en una carpeta fija, por ejemplo `C:\Herramientas\capy-yt-downloader`. **No la muevas después**; si lo haces, repite el paso 2.
 
 ### Paso 2. Instala el programa local
 
@@ -87,6 +92,7 @@ En Windows puedes hacer clic en la barra de direcciones del explorador dentro de
 El instalador:
 - instala o actualiza **yt-dlp**,
 - registra el programa en **Brave, Chrome y Firefox**,
+- prepara las carpetas `dist/brave` y `dist/firefox`, una versión lista para cada navegador,
 - comprueba que **FFmpeg** esté instalado.
 
 Al final deberías ver líneas como `Registrado en ...` y `FFmpeg encontrado.`
@@ -95,20 +101,18 @@ Al final deberías ver líneas como `Registrado en ...` y `FFmpeg encontrado.`
 
 1. Abre `brave://extensions`.
 2. Activa **Modo de desarrollador** (arriba a la derecha).
-3. Pulsa **Cargar descomprimida** y elige la carpeta `extension` (la que tiene `manifest.json` dentro).
+3. Pulsa **Cargar descomprimida** y elige la carpeta `dist/brave`.
 4. Cierra Brave **por completo** y vuelve a abrirlo.
 5. Pulsa el icono de rompecabezas y fija **Capy YT Downloader**.
 
 ### Paso 3B. Cárgala en Firefox
 
 1. Abre `about:debugging#/runtime/this-firefox`.
-2. Pulsa **Cargar complemento temporal** y elige `extension/manifest.json`.
-
-Firefox mostrará un aviso sobre la propiedad `key`. Es normal: ese campo solo lo usa Brave y Firefox lo ignora.
+2. Pulsa **Cargar complemento temporal** y elige `dist/firefox/manifest.json`.
 
 Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
-- **Opción A:** fírmala gratis en [addons.mozilla.org](https://addons.mozilla.org/developers/) como complemento **no listado**. Sube un zip con el contenido de `extension/` y Mozilla te devuelve un `.xpi` firmado que se instala de forma permanente.
-- **Opción B:** usa Firefox Developer Edition, pon `xpinstall.signatures.required` en `false` desde `about:config` e instala el zip del contenido de `extension/`.
+- **Opción A:** fírmala gratis en [addons.mozilla.org](https://addons.mozilla.org/developers/) como complemento **no listado**. Sube un zip con el contenido de `dist/firefox/` y Mozilla te devuelve un `.xpi` firmado que se instala de forma permanente.
+- **Opción B:** usa Firefox Developer Edition, pon `xpinstall.signatures.required` en `false` desde `about:config` e instala el zip del contenido de `dist/firefox/`.
 
 > En Linux, Firefox instalado como Snap o Flatpak no puede comunicarse con programas locales. Usa la versión `.deb` o la de mozilla.org.
 
@@ -117,10 +121,21 @@ Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
 1. Abre un video de YouTube.
 2. Haz clic en el icono de la extensión.
 3. Elige una resolución o un formato de audio.
-4. El archivo queda en `Descargas/YouTube`.
+4. El archivo queda en tu carpeta **Descargas**, o en la que hayas elegido.
+
+### Ajustes
+
+Pulsa el engranaje del popup (o el enlace **Cambiar** junto a la carpeta) y se despliega un panel para elegir la carpeta y el color. En **Más ajustes** se abre una pestaña donde además puedes:
+
+- **Elegir la carpeta de descargas** con el botón **Elegir carpeta**, que abre el selector de carpetas de tu sistema. También puedes escribir la ruta a mano y pulsar **Guardar ruta escrita**, o volver a **Descargas**.
+- **Cambiar el color de la interfaz**: elige un tema y, si quieres, un color de acento propio.
 
 ---
 
 ## Problemas comunes
 
 Mira la guía en [docs/PROBLEMAS.md](docs/PROBLEMAS.md).
+
+## Novedades
+
+Consulta [CHANGELOG.md](CHANGELOG.md).
