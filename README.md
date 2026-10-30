@@ -90,3 +90,31 @@ El instalador:
 - comprueba que **FFmpeg** esté instalado.
 
 Al final deberías ver líneas como `Registrado en ...` y `FFmpeg encontrado.`
+
+### Paso 3A. Cárgala en Brave
+
+1. Abre `brave://extensions`.
+2. Activa **Modo de desarrollador** (arriba a la derecha).
+3. Pulsa **Cargar descomprimida** y elige la carpeta `extension` (la que tiene `manifest.json` dentro).
+4. Cierra Brave **por completo** y vuelve a abrirlo.
+5. Pulsa el icono de rompecabezas y fija **Capy YT Downloader**.
+
+### Paso 3B. Cárgala en Firefox
+
+1. Abre `about:debugging#/runtime/this-firefox`.
+2. Pulsa **Cargar complemento temporal** y elige `extension/manifest.json`.
+
+Firefox mostrará un aviso sobre la propiedad `key`. Es normal: ese campo solo lo usa Brave y Firefox lo ignora.
+
+Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
+- **Opción A:** fírmala gratis en [addons.mozilla.org](https://addons.mozilla.org/developers/) como complemento **no listado**. Sube un zip con el contenido de `extension/` y Mozilla te devuelve un `.xpi` firmado que se instala de forma permanente.
+- **Opción B:** usa Firefox Developer Edition, pon `xpinstall.signatures.required` en `false` desde `about:config` e instala el zip del contenido de `extension/`.
+
+> En Linux, Firefox instalado como Snap o Flatpak no puede comunicarse con programas locales. Usa la versión `.deb` o la de mozilla.org.
+
+### Paso 4. Úsala
+
+1. Abre un video de YouTube.
+2. Haz clic en el icono de la extensión.
+3. Elige una resolución o un formato de audio.
+4. El archivo queda en `Descargas/YouTube`.
