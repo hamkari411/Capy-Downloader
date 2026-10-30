@@ -39,7 +39,7 @@ def write_launcher():
 
 def write_manifests(launcher):
     """Brave/Chrome usan allowed_origins; Firefox usa allowed_extensions."""
-    base = {"name": HOST, "description": "Capy YT Downloader (yt-dlp)",
+    base = {"name": HOST, "description": "Capy Downloader (yt-dlp)",
             "path": launcher, "type": "stdio"}
     variants = {
         "chromium": dict(base, allowed_origins=[f"chrome-extension://{EXTENSION_ID}/"]),
