@@ -118,3 +118,9 @@ Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
 2. Haz clic en el icono de la extensión.
 3. Elige una resolución o un formato de audio.
 4. El archivo queda en `Descargas/YouTube`.
+
+---
+
+## Problemas comunes
+
+Mira la guía en [docs/PROBLEMAS.md](docs/PROBLEMAS.md).
