@@ -118,6 +118,18 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     return true;
   }
 
+  if (m.cmd === 'host_status' || m.cmd === 'set_auto_update' || m.cmd === 'update_now') {
+    const action = { host_status: 'status', set_auto_update: 'set_auto_update', update_now: 'update_now' }[m.cmd];
+    request(action, { value: m.value })
+      .then(r => {
+        // Tras actualizar, se cierra la conexión para que la próxima descarga use la versión nueva.
+        if (r.restart && port) { port.disconnect(); port = null; }
+        reply({ ok: true, data: r });
+      })
+      .catch(e => reply({ ok: false, error: String(e) }));
+    return true;
+  }
+
   if (m.cmd === 'open_options') {
     chrome.runtime.openOptionsPage()
       .catch(() => chrome.tabs.create({ url: chrome.runtime.getURL('options.html') }));

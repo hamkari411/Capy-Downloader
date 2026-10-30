@@ -85,6 +85,36 @@ $('#resetAccent').addEventListener('click', async () => {
   syncAccentPicker();
 });
 
+// ---- yt-dlp ----
+const updMsg = (text, kind = '') => { $('#updMsg').textContent = text; $('#updMsg').className = 'msg ' + kind; };
+
+async function loadEngine() {
+  const r = await chrome.runtime.sendMessage({ cmd: 'host_status' });
+  if (!r?.ok) { $('#ytVer').textContent = 'no disponible'; return; }
+  $('#ytVer').textContent = r.data.version || 'no instalado';
+  $('#autoUpdate').checked = r.data.auto_update !== false;
+  $('#ytLast').textContent = r.data.updating ? '(actualizando…)'
+    : r.data.last_check ? `(revisado el ${new Date(r.data.last_check * 1000).toLocaleDateString()})` : '';
+}
+
+$('#autoUpdate').addEventListener('change', async e => {
+  const r = await chrome.runtime.sendMessage({ cmd: 'set_auto_update', value: e.target.checked });
+  updMsg(r?.ok ? (e.target.checked ? 'Se actualizará solo una vez al día.' : 'Actualización automática desactivada.') : (r?.error || 'Error'), r?.ok ? 'ok' : 'error');
+});
+
+$('#updateNow').addEventListener('click', async () => {
+  const btn = $('#updateNow');
+  btn.disabled = true;
+  updMsg('Actualizando yt-dlp, puede tardar un minuto…');
+  const r = await chrome.runtime.sendMessage({ cmd: 'update_now' });
+  btn.disabled = false;
+  if (r?.ok) updMsg(`Listo: yt-dlp ${r.data.version || ''} instalado.`, 'ok');
+  else updMsg(/Acción desconocida/i.test(r?.error || '')
+    ? 'El programa local es de una versión anterior. Ejecuta "python install.py" otra vez y reinicia el navegador.'
+    : (r?.error || 'No se pudo actualizar.'), 'error');
+  loadEngine();
+});
+
 (async function init() {
   $('#ver').textContent = chrome.runtime.getManifest().version;
   const s = await capyLoadSettings();
@@ -95,4 +125,5 @@ $('#resetAccent').addEventListener('click', async () => {
   }
   renderThemes(s.theme);
   syncAccentPicker();
+  loadEngine();
 })();
