@@ -1,0 +1,58 @@
+:root {
+  --bg: #EEF1F5;
+  --surface: #FFFFFF;
+  --ink: #1C2433;
+  --muted: #5B6578;
+  --line: #D5DBE4;
+  --accent: #2F6FEB;
+  --danger: #C4302B;
+  --ok: #1F8A4C;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161B24; --surface: #202734; --ink: #E7ECF3; --muted: #9AA4B5;
+    --line: #313A4A; --accent: #6B9BFF; --danger: #FF6F66; --ok: #4CC584;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  width: 360px; margin: 0; padding: 14px;
+  background: var(--bg); color: var(--ink);
+  font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+header { display: grid; grid-template-columns: 112px 1fr; gap: 10px; margin-bottom: 12px; }
+#thumb { width: 112px; aspect-ratio: 16/9; object-fit: cover; border-radius: 6px; background: var(--line); }
+h1 { font-size: 14px; line-height: 1.3; margin: 0 0 4px; font-weight: 650;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#meta { margin: 0; color: var(--muted); font-size: 12px; }
+h2 { font-size: 12px; font-weight: 600; color: var(--muted); margin: 14px 0 6px; }
+.status { color: var(--muted); margin: 8px 0; white-space: pre-line; }
+.status.error { color: var(--danger); }
+.list { list-style: none; padding: 0; margin: 0; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.list li + li { border-top: 1px solid var(--line); }
+.list button {
+  all: unset; box-sizing: border-box; width: 100%; cursor: pointer;
+  display: grid; grid-template-columns: 64px 1fr auto; align-items: baseline; gap: 8px;
+  padding: 8px 12px;
+}
+.list.audio button { grid-template-columns: 64px 1fr; }
+.list button:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.list button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.list strong { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.list span { color: var(--muted); font-size: 12px; }
+.list em { font-style: normal; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.jobs-head { display: flex; justify-content: space-between; align-items: baseline; }
+#jobs { list-style: none; padding: 0; margin: 0 0 8px; }
+#jobs li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; }
+.job-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-sub { color: var(--muted); font-size: 12px; }
+.job-sub.error { color: var(--danger); white-space: pre-line; }
+.job-sub.done { color: var(--ok); }
+.bar { height: 4px; background: var(--line); border-radius: 2px; margin: 6px 0 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+.link { all: unset; cursor: pointer; color: var(--accent); font-size: 12px; }
+.link:focus-visible { outline: 2px solid var(--accent); }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
