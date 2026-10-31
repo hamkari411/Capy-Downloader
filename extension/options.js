@@ -136,7 +136,7 @@ async function loadCapy(force = false) {
 
 $('#capyAuto').addEventListener('change', async e => {
   const r = await chrome.runtime.sendMessage({ cmd: 'capy_set_auto', value: e.target.checked });
-  capyMsg(r?.ok ? (e.target.checked ? 'Se buscarán versiones nuevas una vez al día.' : 'Búsqueda automática desactivada.') : (r?.error || 'Error'), r?.ok ? 'ok' : 'error');
+  capyMsg(r?.ok ? (e.target.checked ? 'Se buscarán versiones nuevas cada 12 horas.' : 'Búsqueda automática desactivada.') : (r?.error || 'Error'), r?.ok ? 'ok' : 'error');
 });
 $('#capyCheck').addEventListener('click', async () => {
   $('#capyCheck').disabled = true;
