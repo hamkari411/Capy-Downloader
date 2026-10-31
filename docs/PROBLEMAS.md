@@ -29,3 +29,12 @@ Abre Ajustes y pulsa Actualizar ahora en la sección Motor de descargas.
 
 **Este video de TikTok solo está disponible con marca de agua**
 Capy Downloader solo descarga la versión limpia que entrega TikTok. En los pocos videos que no la tienen, la descarga no se hace.
+
+**La firma de la actualización no es válida**
+El archivo descargado no coincide con lo que publicó el autor, así que no se instaló nada. Vuelve a intentarlo más tarde. Si se repite, avisa en el repositorio.
+
+**Las actualizaciones automáticas no están configuradas en esta copia**
+Falta el archivo `host/update_key.txt`. Descarga de nuevo el proyecto desde GitHub.
+
+**Uso Edge, Opera, Vivaldi u otro navegador y no encuentra el programa local**
+Vuelve a ejecutar `python install.py`: registra el programa en todos los navegadores compatibles que tengas instalados. Carga la extensión desde `dist/chromium` (o `dist/firefox` si tu navegador está basado en Firefox).

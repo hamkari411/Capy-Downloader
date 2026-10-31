@@ -26,16 +26,41 @@ Si prefieres hacerlo a mano, vuelve a ejecutar `python install.py` en la carpeta
 
 ## Actualizar Capy Downloader a una versión nueva
 
-1. Descarga el repositorio de nuevo y reemplaza tu carpeta, o ejecuta `git pull` dentro de ella.
-2. Ejecuta `python install.py` dentro de `host`.
-3. Recarga la extensión: en Brave, botón de recargar en `brave://extensions`; en Firefox, quita la anterior en `about:debugging` y carga `dist/firefox/manifest.json`.
-4. Cierra el navegador por completo y ábrelo de nuevo.
+Desde la 1.3.0, Capy Downloader se actualiza solo: el popup avisa cuando hay una versión nueva y se instala con el botón **Actualizar**. También puedes buscarla en **Ajustes → Más ajustes → Actualizaciones de Capy Downloader**.
+
+Cómo funciona por dentro:
+1. El programa local consulta el último release del repositorio (como mucho una vez al día).
+2. Si hay una versión más nueva, descarga `capy-downloader-X.Y.Z.zip` y su firma `capy-downloader-X.Y.Z.zip.sig`.
+3. Comprueba la firma con la clave pública de `host/update_key.txt`. Si no coincide, no instala nada.
+4. Revisa que el zip solo contenga carpetas y archivos permitidos y que la versión sea mayor que la instalada.
+5. Hace una copia de seguridad, reemplaza los archivos y regenera `dist/`. Si algo falla, restaura la copia.
+6. La extensión se recarga sola.
+
+Los archivos que genera `install.py` y la clave pública nunca se reemplazan durante una actualización.
+
+Si prefieres hacerlo a mano: descarga el repositorio, reemplaza tu carpeta, ejecuta `python install.py` en `host` y recarga la extensión.
 
 ## Publicar una versión nueva (para quien mantiene el proyecto)
 
+### Una sola vez: crear la clave de firma
+
+```
+python tools/release.py keygen
+```
+
+Crea dos claves:
+- **Privada**, en la carpeta `.capy-downloader-signing` de tu usuario. Es la que firma las versiones. **Haz una copia de seguridad en un lugar seguro y nunca la subas a GitHub ni la compartas**: quien la tenga podría publicar actualizaciones que todos aceptarían. Si la pierdes, no podrás publicar actualizaciones automáticas.
+- **Pública**, en `host/update_key.txt`. Esta sí va en el repositorio.
+
+### Cada versión nueva
+
 1. Cambia el número de `version` en `extension/manifest.base.json`.
 2. Añade las notas en `CHANGELOG.md`, en español y en inglés.
-3. Ejecuta `python build.py` y prueba `dist/brave` y `dist/firefox`.
-4. Sube los cambios y crea un release en GitHub con la etiqueta `vX.Y.Z` y las notas del CHANGELOG.
+3. Ejecuta `python build.py` y prueba `dist/chromium` y `dist/firefox`.
+4. Sube los cambios a GitHub.
+5. Ejecuta `python tools/release.py build`. Crea en la carpeta `releases` el zip y su firma.
+6. Crea un release en GitHub con la etiqueta `vX.Y.Z`, pega las notas del CHANGELOG y **adjunta los dos archivos** (`.zip` y `.zip.sig`). Sin ellos, los usuarios no recibirán la actualización.
+
+Te recomiendo activar la verificación en dos pasos en tu cuenta de GitHub: es la puerta de entrada de las actualizaciones de todos los usuarios.
 
 Los identificadores internos (`com.capybara.ytdl` y `capy-ytdl@capybara`) no deben cambiarse: si cambian, quienes ya tienen la extensión instalada pierden la conexión con el programa local.
