@@ -198,6 +198,7 @@ $('#updNotesBtn').addEventListener('click', () => { $('#updNotes').hidden = !$('
 $('#updLater').addEventListener('click', async () => {
   await chrome.storage.local.set({ dismissed: $('#updVer').textContent });
   $('#updBanner').hidden = true;
+  chrome.runtime.sendMessage({ cmd: 'capy_update_info' }); // quita la flecha del icono
 });
 $('#updApply').addEventListener('click', async () => {
   $('#updApply').disabled = true;
