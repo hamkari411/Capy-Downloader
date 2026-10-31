@@ -37,9 +37,30 @@ PICKER = r"""
 import sys, tkinter as tk
 from tkinter import filedialog
 root = tk.Tk()
-root.overrideredirect(True)
-root.geometry("1x1+200+200")
+root.title("Capy Downloader")
+root.attributes("-alpha", 0.0)   # ventana dueña invisible, centrada en la pantalla
+root.geometry("1x1+%d+%d" % (root.winfo_screenwidth() // 2, root.winfo_screenheight() // 3))
 root.attributes("-topmost", True)
+root.update()
+if sys.platform == "win32":
+    # Windows no deja que un programa en segundo plano se ponga al frente, y por eso
+    # el selector a veces se abría detrás del navegador. Se "engancha" al hilo de la
+    # ventana activa un instante para poder traer la ventana al frente de forma fiable.
+    try:
+        import ctypes
+        user32, kernel32 = ctypes.windll.user32, ctypes.windll.kernel32
+        hwnd = user32.GetParent(root.winfo_id()) or root.winfo_id()
+        fg = user32.GetForegroundWindow()
+        fg_thread = user32.GetWindowThreadProcessId(fg, None)
+        me = kernel32.GetCurrentThreadId()
+        attached = fg_thread and fg_thread != me and user32.AttachThreadInput(me, fg_thread, True)
+        user32.ShowWindow(hwnd, 5)
+        user32.BringWindowToTop(hwnd)
+        user32.SetForegroundWindow(hwnd)
+        if attached:
+            user32.AttachThreadInput(me, fg_thread, False)
+    except Exception:
+        pass
 root.lift()
 root.focus_force()
 root.update()
@@ -60,6 +81,7 @@ NO_WINDOW = 0x08000000 if platform.system() == "Windows" else 0  # CREATE_NO_WIN
 _update_done = threading.Event()
 _active = {"downloads": 0}
 _active_lock = threading.Lock()
+_picker_lock = threading.Lock()  # un solo selector de carpetas abierto a la vez
 AUDIO_FORMATS = ("mp3", "m4a", "original")
 
 
@@ -288,10 +310,16 @@ def resolve_folder(folder):
 
 
 def pick_folder(initial):
-    start = initial if initial and os.path.isdir(initial) else DOWNLOAD_DIR
-    flags = 0x08000000 if platform.system() == "Windows" else 0  # CREATE_NO_WINDOW
-    res = subprocess.run([sys.executable, "-c", PICKER, start],
-                         capture_output=True, text=True, encoding="utf-8", creationflags=flags)
+    if not _picker_lock.acquire(blocking=False):
+        raise RuntimeError("Ya hay una ventana abierta para elegir carpeta. Búscala en la barra de tareas.")
+    try:
+        start = initial if initial and os.path.isdir(initial) else DOWNLOAD_DIR
+        res = subprocess.run([sys.executable, "-c", PICKER, start], capture_output=True,
+                             text=True, encoding="utf-8", creationflags=NO_WINDOW, timeout=600)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("El selector de carpetas se cerró por inactividad. Vuelve a intentarlo.")
+    finally:
+        _picker_lock.release()
     if res.returncode != 0:
         raise RuntimeError("No pude abrir el selector de carpetas. Escribe la ruta a mano en Ajustes.")
     path = res.stdout.strip()
