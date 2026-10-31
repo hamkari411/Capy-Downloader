@@ -76,7 +76,8 @@ ALLOWED_HOSTS = ("youtube.com", "youtu.be", "tiktok.com", "instagram.com")
 # Estado del programa local (última actualización de yt-dlp y preferencia de auto-actualización).
 STATE_DIR = os.path.join(os.path.expanduser("~"), ".capy-downloader")
 STATE_FILE = os.path.join(STATE_DIR, "state.json")
-UPDATE_EVERY = 24 * 3600  # como mucho una vez al día
+UPDATE_EVERY = 24 * 3600       # yt-dlp: como mucho una vez al día
+CAPY_CHECK_EVERY = 12 * 3600   # Capy Downloader: busca versiones nuevas cada 12 horas
 NO_WINDOW = 0x08000000 if platform.system() == "Windows" else 0  # CREATE_NO_WINDOW
 _update_done = threading.Event()
 _active = {"downloads": 0}
@@ -167,11 +168,11 @@ def startup_update():
 
 
 def capy_update_info(force=False):
-    """Información del último release de Capy Downloader (consulta GitHub como mucho una vez al día)."""
+    """Información del último release de Capy Downloader (consulta GitHub como mucho cada 12 horas)."""
     import updater
     state = load_state()
     info = state.get("capy_update")
-    if force or not info or time.time() - state.get("capy_checked", 0) > UPDATE_EVERY:
+    if force or not info or time.time() - state.get("capy_checked", 0) > CAPY_CHECK_EVERY:
         info = updater.check()
         state = load_state()
         state["capy_update"] = info
@@ -484,6 +485,15 @@ def handle(msg):
             send({"id": mid, "type": "ok"})
         elif action == "capy_update_info":
             info = load_state().get("capy_update")
+            send({"id": mid, "type": "capy_update", **capy_status(info)})
+        elif action == "capy_periodic":
+            # Revisión programada (cada 12 horas desde la extensión), si está activada.
+            info = load_state().get("capy_update")
+            if load_state().get("check_capy_updates", True):
+                try:
+                    info = capy_update_info()
+                except Exception:
+                    pass
             send({"id": mid, "type": "capy_update", **capy_status(info)})
         elif action == "capy_check_update":
             try:
