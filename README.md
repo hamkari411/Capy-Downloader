@@ -2,6 +2,8 @@
 
 Extensión para **Brave** y **Firefox** que descarga videos de **YouTube, TikTok e Instagram** en cualquier resolución disponible o solo el audio (MP3, M4A u original).
 
+☕ **¿Te sirve Capy Downloader?** Si quieres seguir apoyando el proyecto, puedes donar lo que quieras desde aquí: **[Invítame un café en Ko-fi](https://ko-fi.com/hamkari411)**. Todo lo que llegue se usa para seguir mejorándolo, y el proyecto seguirá siendo gratis y libre.
+
 > Antes se llamaba **Capy YT Downloader**. Desde la versión 1.2 es multiplataforma y pasó a llamarse **Capy Downloader**. Detalles en el [CHANGELOG](CHANGELOG.md).
 
 > Úsala con tu propio contenido, videos con licencia libre (Creative Commons) o material que tengas permiso de descargar. Los términos de YouTube, TikTok e Instagram no permiten descargar contenido ajeno sin autorización, y resubir videos de otros puede costarte sanciones en tu cuenta.
@@ -81,7 +83,7 @@ capy-yt-downloader/
 Descarga este repositorio (botón **Code > Download ZIP**) o clónalo:
 
 ```
-git clone https://github.com/hamkari411/capy-yt-downloader.git
+git clone https://github.com/hamkari411/Capy-Downloader.git
 ```
 
 Guárdalo en una carpeta fija, por ejemplo `C:\Herramientas\capy-yt-downloader`. **No la muevas después**; si lo haces, repite el paso 2.
