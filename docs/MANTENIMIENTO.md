@@ -29,7 +29,7 @@ Si prefieres hacerlo a mano, vuelve a ejecutar `python install.py` en la carpeta
 Desde la 1.3.0, Capy Downloader se actualiza solo: el popup avisa cuando hay una versión nueva y se instala con el botón **Actualizar**. También puedes buscarla en **Ajustes → Más ajustes → Actualizaciones de Capy Downloader**.
 
 Cómo funciona por dentro:
-1. El programa local consulta el último release del repositorio (como mucho una vez al día).
+1. Cada 12 horas, la extensión pide al programa local que consulte el último release del repositorio. Si hay una versión nueva, aparece una flecha **↑** sobre el icono.
 2. Si hay una versión más nueva, descarga `capy-downloader-X.Y.Z.zip` y su firma `capy-downloader-X.Y.Z.zip.sig`.
 3. Comprueba la firma con la clave pública de `host/update_key.txt`. Si no coincide, no instala nada.
 4. Revisa que el zip solo contenga carpetas y archivos permitidos y que la versión sea mayor que la instalada.

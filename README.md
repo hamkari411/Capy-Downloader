@@ -149,7 +149,7 @@ Pulsa el engranaje del popup (o el enlace **Cambiar** junto a la carpeta) y se d
 
 ### Actualizaciones
 
-Una vez al día, Capy Downloader revisa si hay una versión nueva en este repositorio. Si la hay, el popup muestra un aviso con las novedades y un botón **Actualizar**. Al pulsarlo:
+Cada 12 horas, Capy Downloader revisa si hay una versión nueva en este repositorio. Si la hay, aparece una flecha **↑** sobre el icono de la extensión y el popup muestra un aviso con las novedades y un botón **Actualizar**. Al pulsarlo:
 
 1. Descarga la versión nueva desde los releases de GitHub.
 2. **Comprueba la firma digital** del autor. Si alguien alterara el archivo, la firma no coincidiría y no se instalaría nada.
