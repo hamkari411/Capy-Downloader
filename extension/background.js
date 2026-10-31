@@ -20,6 +20,12 @@ chrome.storage.onChanged.addListener((c, area) => {
   if (area === 'local' && c.accentColor) { accentColor = c.accentColor.newValue; updateBadge(); }
 });
 
+let newVersion = '';       // versión nueva de Capy disponible (para el aviso en el icono)
+chrome.storage.local.get({ newVersion: '', dismissed: '' }).then(r => {
+  newVersion = r.newVersion && r.newVersion !== r.dismissed ? r.newVersion : '';
+  updateBadge();
+});
+
 function updateBadge() {
   const running = Object.values(jobs).filter(j => j.status === 'running');
   if (running.length) {
@@ -32,9 +38,31 @@ function updateBadge() {
   } else if (Object.values(jobs).some(j => j.status === 'done' && !j.seen)) {
     chrome.action.setBadgeBackgroundColor({ color: '#1F8A4C' });
     chrome.action.setBadgeText({ text: '✓' });
+  } else if (newVersion) {
+    chrome.action.setBadgeBackgroundColor({ color: '#00A3B8' });
+    chrome.action.setBadgeText({ text: '↑' });
+    chrome.action.setTitle({ title: `Capy Downloader: hay una versión nueva (${newVersion})` });
   } else {
     chrome.action.setBadgeText({ text: '' });
+    chrome.action.setTitle({ title: 'Descargar este video' });
   }
+}
+
+// ---- Búsqueda de versiones nuevas cada 12 horas ----
+const CHECK_ALARM = 'capy-update-check';
+chrome.alarms.get(CHECK_ALARM).then(a => {
+  if (!a) chrome.alarms.create(CHECK_ALARM, { delayInMinutes: 1, periodInMinutes: 12 * 60 });
+});
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name !== CHECK_ALARM) return;
+  request('capy_periodic').then(markUpdate).catch(() => {});
+});
+
+async function markUpdate(r) {
+  const { dismissed } = await chrome.storage.local.get({ dismissed: '' });
+  newVersion = r && r.available && r.latest !== dismissed ? r.latest : '';
+  await chrome.storage.local.set({ newVersion: r && r.available ? r.latest : '' });
+  updateBadge();
 }
 
 function connect() {
@@ -143,6 +171,7 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     request(m.cmd, { value: m.value })
       .then(r => {
         reply({ ok: true, data: r });
+        if (m.cmd === 'capy_update_info' || m.cmd === 'capy_check_update') markUpdate(r);
         // Tras instalar una versión nueva, la extensión se recarga para usar los archivos nuevos.
         if (r.reload) setTimeout(() => chrome.runtime.reload(), 400);
       })
