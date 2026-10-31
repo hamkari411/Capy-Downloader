@@ -4,6 +4,16 @@
 
 ## Español
 
+### 1.3.1
+
+#### Cambios
+- **Capy Downloader busca versiones nuevas cada 12 horas** (antes, una vez al día), para que las actualizaciones lleguen antes.
+- Cuando hay una versión nueva, aparece una flecha **↑** sobre el icono de la extensión, aunque no abras el popup.
+- La revisión sigue funcionando aunque el navegador quede abierto varios días seguidos.
+
+#### Cómo actualizar desde la 1.3.0
+Abre el popup y pulsa **Actualizar** en el aviso de versión nueva. Se instala sola.
+
 ### 1.3.0
 
 #### Novedades
@@ -107,6 +117,16 @@ El proyecto nació como **Capy YT Downloader**, solo para YouTube. Desde esta ve
 - Primera versión: descarga de video en todas las resoluciones y de solo audio (MP3, M4A u original) en Brave y Firefox.
 
 ## English
+
+### 1.3.1
+
+#### Changes
+- **Capy Downloader checks for new versions every 12 hours** (previously once a day), so updates arrive sooner.
+- When a new version is available, an **↑** arrow appears on the extension icon, even if you don't open the popup.
+- The check keeps working even if the browser stays open for several days.
+
+#### How to update from 1.3.0
+Open the popup and click **Update** on the new-version notice. It installs by itself.
 
 ### 1.3.0
 
