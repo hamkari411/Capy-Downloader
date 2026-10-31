@@ -1,6 +1,6 @@
 # Capy Downloader
 
-Extensión para **Brave** y **Firefox** que descarga videos de **YouTube, TikTok e Instagram** en cualquier resolución disponible o solo el audio (MP3, M4A u original).
+Extensión para **cualquier navegador basado en Chromium o en Firefox** que descarga videos de **YouTube, TikTok e Instagram** en cualquier resolución disponible o solo el audio (MP3, M4A u original).
 
 ☕ **¿Te sirve Capy Downloader?** Si quieres seguir apoyando el proyecto, puedes donar lo que quieras desde aquí: **[Invítame un café en Ko-fi](https://ko-fi.com/hamkari411)**. Todo lo que llegue se usa para seguir mejorándolo, y el proyecto seguirá siendo gratis y libre.
 
@@ -28,13 +28,14 @@ Extensión para **Brave** y **Firefox** que descarga videos de **YouTube, TikTok
 - Guarda el archivo directo en tu carpeta **Descargas** (sin crear subcarpetas), o en la carpeta que elijas en **Ajustes**.
 - Tiene **temas de color**: Cyberpunk, Azul (claro u oscuro según el sistema), Matrix y Ámbar, más un color de acento personalizado.
 - **Se mantiene al día sola**: actualiza yt-dlp automáticamente una vez al día para que las descargas no se rompan cuando las plataformas cambian.
+- **Se actualiza a sí misma**: cuando sale una versión nueva de Capy Downloader, el popup te avisa y la instalas con un botón, sin volver a descargar nada. Antes de instalar, comprueba la firma digital del autor.
 
 ## Cómo funciona
 
 La extensión tiene dos partes que se comunican entre sí:
 
 ```
- Navegador (Brave / Firefox)                   Tu PC
+ Navegador (Chromium / Firefox)                Tu PC
 +--------------------------+   Native     +--------------------------+
 | extension/               |  Messaging   | host/yt_host.py          |
 |  popup: lista y progreso | -----------> |  yt-dlp: lee y descarga  |
@@ -60,10 +61,13 @@ capy-yt-downloader/
 |   |-- options.html/css/js  (pagina de Ajustes)
 |   |-- theme.css/js    (temas de color)
 |   `-- icons/
-|-- build.py            <- genera dist/brave y dist/firefox
+|-- build.py            <- genera dist/chromium y dist/firefox
+|-- tools/release.py    <- firma y empaqueta versiones nuevas (para el autor)
 `-- host/               <- el programa que corre en tu PC
     |-- yt_host.py      (descarga con yt-dlp)
-    `-- install.py      (lo registra en Brave, Chrome y Firefox)
+    |-- updater.py      (busca e instala versiones nuevas firmadas)
+    |-- ed25519.py      (comprobación de la firma digital)
+    `-- install.py      (lo registra en los navegadores)
 ```
 
 ---
@@ -76,7 +80,7 @@ capy-yt-downloader/
 |---|---|---|
 | Python 3.9 o más nuevo | Ejecutar el programa local | [python.org](https://www.python.org/downloads/). En Windows marca **"Add Python to PATH"** |
 | FFmpeg | Unir video y audio (720p o más) y convertir a MP3 | Windows: `winget install Gyan.FFmpeg`. macOS: `brew install ffmpeg`. Linux: `sudo apt install ffmpeg` |
-| Brave, o Firefox 121+ | El navegador | |
+| Un navegador compatible | Usar la extensión | **Basados en Chromium:** Chrome, Brave, Edge, Opera, Vivaldi, Chromium. **Basados en Firefox (121 o más nuevo):** Firefox, LibreWolf, Waterfox, Zen, Floorp |
 
 ### Paso 1. Descarga el proyecto
 
@@ -100,21 +104,23 @@ En Windows puedes hacer clic en la barra de direcciones del explorador dentro de
 
 El instalador:
 - instala o actualiza **yt-dlp**,
-- registra el programa en **Brave, Chrome y Firefox**,
-- prepara las carpetas `dist/brave` y `dist/firefox`, una versión lista para cada navegador,
+- registra el programa en los navegadores **basados en Chromium y en Firefox**,
+- prepara las carpetas `dist/chromium` y `dist/firefox`, una versión lista para cada familia de navegadores,
 - comprueba que **FFmpeg** esté instalado.
 
 Al final deberías ver líneas como `Registrado en ...` y `FFmpeg encontrado.`
 
-### Paso 3A. Cárgala en Brave
+### Paso 3A. Navegadores basados en Chromium (Chrome, Brave, Edge, Opera, Vivaldi)
 
-1. Abre `brave://extensions`.
-2. Activa **Modo de desarrollador** (arriba a la derecha).
-3. Pulsa **Cargar descomprimida** y elige la carpeta `dist/brave`.
-4. Cierra Brave **por completo** y vuelve a abrirlo.
-5. Pulsa el icono de rompecabezas y fija **Capy Downloader**.
+1. Abre la página de extensiones: `chrome://extensions`, `brave://extensions`, `edge://extensions`, `opera://extensions` o `vivaldi://extensions`.
+2. Activa **Modo de desarrollador**.
+3. Pulsa **Cargar descomprimida** (o "Cargar sin empaquetar") y elige la carpeta `dist/chromium`.
+4. Cierra el navegador **por completo** y vuelve a abrirlo.
+5. Fija **Capy Downloader** en la barra desde el icono de extensiones.
 
-### Paso 3B. Cárgala en Firefox
+> Si ya la tenías cargada desde `dist/brave`, puedes seguir usándola: es la misma versión.
+
+### Paso 3B. Navegadores basados en Firefox (Firefox, LibreWolf, Waterfox, Zen, Floorp)
 
 1. Abre `about:debugging#/runtime/this-firefox`.
 2. Pulsa **Cargar complemento temporal** y elige `dist/firefox/manifest.json`.
@@ -139,6 +145,18 @@ Pulsa el engranaje del popup (o el enlace **Cambiar** junto a la carpeta) y se d
 - **Elegir la carpeta de descargas** con el botón **Elegir carpeta**, que abre el selector de carpetas de tu sistema. También puedes escribir la ruta a mano y pulsar **Guardar ruta escrita**, o volver a **Descargas**.
 - **Cambiar el color de la interfaz**: elige un tema y, si quieres, un color de acento propio.
 - **Ver la versión de yt-dlp**, activar o desactivar la actualización automática y **actualizar al momento**.
+- **Buscar versiones nuevas de Capy Downloader** e instalarlas con un botón.
+
+### Actualizaciones
+
+Una vez al día, Capy Downloader revisa si hay una versión nueva en este repositorio. Si la hay, el popup muestra un aviso con las novedades y un botón **Actualizar**. Al pulsarlo:
+
+1. Descarga la versión nueva desde los releases de GitHub.
+2. **Comprueba la firma digital** del autor. Si alguien alterara el archivo, la firma no coincidiría y no se instalaría nada.
+3. Reemplaza los archivos de la extensión y del programa local, manteniendo tus ajustes.
+4. La extensión se reinicia sola con la versión nueva.
+
+Solo tienes que instalar a mano la 1.3.0; a partir de ahí, las siguientes se instalan desde el propio popup.
 
 ---
 
