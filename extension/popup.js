@@ -18,7 +18,7 @@ function friendlyError(err) {
   if (/ffmpeg/i.test(e)) return 'Falta FFmpeg: es necesario para unir video y audio y para convertir a MP3.';
   if (/not a bot|sign in/i.test(e))
     return 'YouTube pidió verificación.\nActualiza yt-dlp: python -m pip install -U yt-dlp';
-  if (/carpeta de descargas no existe|selector de carpetas|Acción desconocida/i.test(e))
+  if (/carpeta de descargas no existe|selector de carpetas|ventana abierta para elegir|Acción desconocida/i.test(e))
     return /Acción desconocida/i.test(e)
       ? 'El programa local es de una versión anterior.\nEjecuta "python install.py" otra vez y reinicia el navegador.'
       : e;
