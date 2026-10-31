@@ -4,6 +4,18 @@
 
 ## Español
 
+### 1.2.5
+
+#### Correcciones
+- **El selector de carpetas ahora siempre aparece al frente.** En Windows, la ventana para elegir carpeta a veces se abría detrás del navegador y parecía que no hacía nada. Ahora se trae al frente de forma fiable.
+- Solo puede haber un selector abierto a la vez: si ya hay uno, la extensión te avisa en lugar de abrir otro escondido.
+- Si el selector queda abierto sin usar, se cierra solo a los 10 minutos para no bloquear la extensión.
+
+#### Cómo actualizar desde la 1.2
+1. Descarga el repositorio de nuevo (o `git pull`).
+2. Ejecuta `python install.py` en `host`.
+3. Recarga la extensión desde `dist/brave` o `dist/firefox`.
+
 ### 1.2.0
 
 #### Ahora se llama Capy Downloader
@@ -72,6 +84,18 @@ El proyecto nació como **Capy YT Downloader**, solo para YouTube. Desde esta ve
 - Primera versión: descarga de video en todas las resoluciones y de solo audio (MP3, M4A u original) en Brave y Firefox.
 
 ## English
+
+### 1.2.5
+
+#### Fixes
+- **The folder picker now always shows up in front.** On Windows, the folder picker window sometimes opened behind the browser and looked like nothing happened. It is now reliably brought to the front.
+- Only one picker can be open at a time: if one is already open, the extension tells you instead of opening another hidden one.
+- If the picker is left open unused, it closes by itself after 10 minutes so it doesn't block the extension.
+
+#### How to update from 1.2
+1. Download the repository again (or `git pull`).
+2. Run `python install.py` inside `host`.
+3. Reload the extension from `dist/brave` or `dist/firefox`.
 
 ### 1.2.0
 
