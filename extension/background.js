@@ -5,6 +5,7 @@ let port = null;
 let seq = 0;
 const waiters = new Map(); // respuestas puntuales (info, ping, open)
 let jobs = {};             // descargas en curso / terminadas
+let picking = false;       // hay un selector de carpetas abierto
 
 chrome.storage.session.get('jobs').then(r => { jobs = r.jobs || {}; });
 
@@ -105,8 +106,16 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
   if (m.cmd === 'pick_folder' || m.cmd === 'default_dir') {
     // El fondo hace la petición y guarda el resultado él mismo: así funciona
     // aunque el popup se cierre cuando aparece la ventana del selector.
-    chrome.storage.local.set({ pickError: '' });
+    if (m.cmd === 'pick_folder') {
+      if (picking) {
+        reply({ ok: false, error: 'Ya hay una ventana abierta para elegir carpeta. Búscala en la barra de tareas.' });
+        return false;
+      }
+      picking = true;
+      chrome.storage.local.set({ pickError: '' });
+    }
     request(m.cmd, { initial: m.initial || '' })
+      .finally(() => { if (m.cmd === 'pick_folder') picking = false; })
       .then(async r => {
         if (m.cmd === 'pick_folder' && r.path) await chrome.storage.local.set({ downloadDir: r.path });
         reply({ ok: true, path: r.path });
