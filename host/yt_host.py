@@ -149,7 +149,8 @@ def record_update(ok):
 
 
 def startup_update():
-    """Al arrancar, actualiza yt-dlp si toca (una vez al día y si está activado)."""
+    """Al arrancar, actualiza yt-dlp si toca (una vez al día y si está activado)
+    y revisa si hay una versión nueva de Capy Downloader."""
     try:
         state = load_state()
         if state.get("auto_update", True) and time.time() - state.get("last_check", 0) > UPDATE_EVERY:
@@ -158,6 +159,37 @@ def startup_update():
         pass
     finally:
         _update_done.set()
+    try:
+        if load_state().get("check_capy_updates", True):
+            capy_update_info()
+    except Exception:
+        pass
+
+
+def capy_update_info(force=False):
+    """Información del último release de Capy Downloader (consulta GitHub como mucho una vez al día)."""
+    import updater
+    state = load_state()
+    info = state.get("capy_update")
+    if force or not info or time.time() - state.get("capy_checked", 0) > UPDATE_EVERY:
+        info = updater.check()
+        state = load_state()
+        state["capy_update"] = info
+        state["capy_checked"] = time.time()
+        save_state(state)
+    return info
+
+
+def capy_status(info):
+    import updater
+    return {
+        "current": updater.current_version(),
+        "latest": (info or {}).get("latest"),
+        "notes": (info or {}).get("notes", ""),
+        "available": updater.is_available(info),
+        "configured": updater.public_key() is not None,
+        "auto": load_state().get("check_capy_updates", True),
+    }
 
 
 def ytdlp():
@@ -450,6 +482,30 @@ def handle(msg):
             state["auto_update"] = bool(msg.get("value"))
             save_state(state)
             send({"id": mid, "type": "ok"})
+        elif action == "capy_update_info":
+            info = load_state().get("capy_update")
+            send({"id": mid, "type": "capy_update", **capy_status(info)})
+        elif action == "capy_check_update":
+            try:
+                info = capy_update_info(force=True)
+            except Exception:
+                raise RuntimeError("No pude consultar GitHub. Revisa tu conexión a internet.")
+            send({"id": mid, "type": "capy_update", **capy_status(info)})
+        elif action == "capy_set_auto":
+            state = load_state()
+            state["check_capy_updates"] = bool(msg.get("value"))
+            save_state(state)
+            send({"id": mid, "type": "ok"})
+        elif action == "capy_apply_update":
+            import updater
+            with _active_lock:
+                busy = _active["downloads"] > 0
+            if busy:
+                raise RuntimeError("Espera a que terminen las descargas en curso y vuelve a intentarlo.")
+            info = capy_update_info(force=True)
+            version = updater.apply(info)
+            # reload: la extensión se recarga para usar los archivos nuevos.
+            send({"id": mid, "type": "capy_updated", "version": version, "reload": True})
         elif action == "update_now":
             _update_done.wait(timeout=200)
             with _active_lock:
