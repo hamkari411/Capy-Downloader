@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Registra el programa local en Brave, Chrome y Firefox. Ejecutar: python install.py"""
+"""Registra el programa local en los navegadores basados en Chromium y en Firefox. Ejecutar: python install.py"""
 import json
 import os
 import platform
@@ -54,37 +54,68 @@ def write_manifests(launcher):
     return paths
 
 
+# Dónde busca cada navegador los programas locales. Chromium: Chrome, Brave, Edge, Opera,
+# Vivaldi y derivados. Firefox: Firefox, LibreWolf, Waterfox, Zen, Floorp y derivados.
+WINDOWS_KEYS = [
+    (r"Software\Google\Chrome\NativeMessagingHosts", "chromium"),      # Chrome, Opera, Vivaldi
+    (r"Software\Chromium\NativeMessagingHosts", "chromium"),
+    (r"Software\BraveSoftware\Brave-Browser\NativeMessagingHosts", "chromium"),
+    (r"Software\Microsoft\Edge\NativeMessagingHosts", "chromium"),
+    (r"Software\Vivaldi\NativeMessagingHosts", "chromium"),
+    (r"Software\Mozilla\NativeMessagingHosts", "firefox"),              # Firefox, Zen, Floorp
+    (r"Software\LibreWolf\NativeMessagingHosts", "firefox"),
+    (r"Software\Waterfox\NativeMessagingHosts", "firefox"),
+]
+MAC_DIRS = [
+    ("Library/Application Support/Google/Chrome", "chromium"),
+    ("Library/Application Support/Chromium", "chromium"),
+    ("Library/Application Support/BraveSoftware/Brave-Browser", "chromium"),
+    ("Library/Application Support/Microsoft Edge", "chromium"),
+    ("Library/Application Support/Vivaldi", "chromium"),
+    ("Library/Application Support/com.operasoftware.Opera", "chromium"),
+    ("Library/Application Support/Mozilla", "firefox"),
+    ("Library/Application Support/LibreWolf", "firefox"),
+    ("Library/Application Support/Waterfox", "firefox"),
+]
+LINUX_DIRS = [
+    (".config/google-chrome", "chromium"),
+    (".config/chromium", "chromium"),
+    (".config/BraveSoftware/Brave-Browser", "chromium"),
+    (".config/microsoft-edge", "chromium"),
+    (".config/vivaldi", "chromium"),
+    (".config/opera", "chromium"),
+    (".mozilla", "firefox"),
+    (".librewolf", "firefox"),
+    (".waterfox", "firefox"),
+]
+
+
 def register(paths):
     if SYSTEM == "Windows":
         import winreg
-        keys = [
-            (rf"Software\BraveSoftware\Brave-Browser\NativeMessagingHosts\{HOST}", "chromium"),
-            (rf"Software\Google\Chrome\NativeMessagingHosts\{HOST}", "chromium"),
-            (rf"Software\Mozilla\NativeMessagingHosts\{HOST}", "firefox"),
-        ]
-        for key, kind in keys:
+        for base, kind in WINDOWS_KEYS:
+            key = base + "\\" + HOST
             with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key) as k:
                 winreg.SetValueEx(k, "", 0, winreg.REG_SZ, paths[kind])
-            print("Registrado en HKCU\\" + key)
+        print("Registrado para los navegadores basados en Chromium y en Firefox.")
         return
 
     home = os.path.expanduser("~")
-    if SYSTEM == "Darwin":
-        targets = [
-            (f"{home}/Library/Application Support/BraveSoftware/Brave-Browser/NativeMessagingHosts", "chromium"),
-            (f"{home}/Library/Application Support/Google/Chrome/NativeMessagingHosts", "chromium"),
-            (f"{home}/Library/Application Support/Mozilla/NativeMessagingHosts", "firefox"),
-        ]
-    else:
-        targets = [
-            (f"{home}/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts", "chromium"),
-            (f"{home}/.config/google-chrome/NativeMessagingHosts", "chromium"),
-            (f"{home}/.mozilla/native-messaging-hosts", "firefox"),
-        ]
-    for d, kind in targets:
+    targets = MAC_DIRS if SYSTEM == "Darwin" else LINUX_DIRS
+    done = 0
+    for rel, kind in targets:
+        browser_dir = os.path.join(home, rel)
+        # Solo en navegadores instalados (los dos principales siempre).
+        if not os.path.isdir(browser_dir) and rel not in (targets[0][0], targets[6][0]):
+            continue
+        sub = "native-messaging-hosts" if kind == "firefox" and SYSTEM != "Darwin" else "NativeMessagingHosts"
+        d = os.path.join(browser_dir, sub)
         os.makedirs(d, exist_ok=True)
         shutil.copy(paths[kind], os.path.join(d, HOST + ".json"))
         print("Registrado en " + d)
+        done += 1
+    if not done:
+        print("No encontré navegadores compatibles instalados.")
 
 
 def check_ffmpeg():
@@ -111,4 +142,4 @@ if __name__ == "__main__":
     build_extension()
     register(write_manifests(write_launcher()))
     check_ffmpeg()
-    print("\nListo. Cierra por completo Brave y/o Firefox y vuelve a abrirlos.")
+    print("\nListo. Cierra por completo tu navegador y vuelve a abrirlo.")
