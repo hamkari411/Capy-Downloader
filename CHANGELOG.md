@@ -4,6 +4,29 @@
 
 ## Español
 
+### 1.3.0
+
+#### Novedades
+- **Capy Downloader se actualiza solo.** Cuando sale una versión nueva, el popup te avisa con las novedades y un botón **Actualizar**. Ya no hay que volver a descargar el proyecto ni ejecutar el instalador.
+- **Firma digital en cada versión.** Antes de instalar una actualización, Capy comprueba que la firmó el autor. Si el archivo fue alterado, no se instala nada.
+- **Compatible con cualquier navegador basado en Chromium** (Chrome, Brave, Edge, Opera, Vivaldi, Chromium) **o en Firefox** (Firefox, LibreWolf, Waterfox, Zen, Floorp).
+- Nueva sección **Actualizaciones de Capy Downloader** en Ajustes: versión instalada, búsqueda automática y botones **Buscar ahora** y **Actualizar**.
+
+#### Cambios
+- La versión para navegadores Chromium ahora está en `dist/chromium`. `dist/brave` se sigue generando igual para quien ya la tenía cargada.
+- Nueva herramienta `tools/release.py` para firmar y empaquetar versiones.
+
+#### Seguridad
+- Las actualizaciones solo se descargan de los releases oficiales del repositorio y se verifican con firma Ed25519.
+- Una actualización no puede escribir fuera de las carpetas del proyecto ni reemplazar la clave pública ni tus archivos de instalación.
+- Si algo falla a mitad de una actualización, se restaura la versión anterior.
+
+#### Cómo actualizar desde la 1.2
+Esta es la última vez que hay que hacerlo a mano:
+1. Descarga el repositorio de nuevo (o `git pull`).
+2. Ejecuta `python install.py` en `host`.
+3. Carga la extensión desde `dist/chromium` o `dist/firefox`.
+
 ### 1.2.5
 
 #### Correcciones
@@ -84,6 +107,29 @@ El proyecto nació como **Capy YT Downloader**, solo para YouTube. Desde esta ve
 - Primera versión: descarga de video en todas las resoluciones y de solo audio (MP3, M4A u original) en Brave y Firefox.
 
 ## English
+
+### 1.3.0
+
+#### What's new
+- **Capy Downloader updates itself.** When a new version is out, the popup shows the release notes and an **Update** button. No need to download the project again or run the installer.
+- **Digital signature on every version.** Before installing an update, Capy checks that it was signed by the author. If the file was tampered with, nothing is installed.
+- **Works with any Chromium-based browser** (Chrome, Brave, Edge, Opera, Vivaldi, Chromium) **or Firefox-based browser** (Firefox, LibreWolf, Waterfox, Zen, Floorp).
+- New **Capy Downloader updates** section in Settings: installed version, automatic checks, and **Check now** and **Update** buttons.
+
+#### Changes
+- The build for Chromium browsers is now in `dist/chromium`. `dist/brave` is still generated for those who already loaded it.
+- New `tools/release.py` tool to sign and package versions.
+
+#### Security
+- Updates are only downloaded from the repository's official releases and verified with an Ed25519 signature.
+- An update cannot write outside the project folders or replace the public key or your installation files.
+- If something fails halfway through an update, the previous version is restored.
+
+#### How to update from 1.2
+This is the last time it has to be done by hand:
+1. Download the repository again (or `git pull`).
+2. Run `python install.py` inside `host`.
+3. Load the extension from `dist/chromium` or `dist/firefox`.
 
 ### 1.2.5
 
