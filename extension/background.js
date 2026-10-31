@@ -139,6 +139,17 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     return true;
   }
 
+  if (['capy_update_info', 'capy_check_update', 'capy_set_auto', 'capy_apply_update'].includes(m.cmd)) {
+    request(m.cmd, { value: m.value })
+      .then(r => {
+        reply({ ok: true, data: r });
+        // Tras instalar una versión nueva, la extensión se recarga para usar los archivos nuevos.
+        if (r.reload) setTimeout(() => chrome.runtime.reload(), 400);
+      })
+      .catch(e => reply({ ok: false, error: String(e) }));
+    return true;
+  }
+
   if (m.cmd === 'open_options') {
     chrome.runtime.openOptionsPage()
       .catch(() => chrome.tabs.create({ url: chrome.runtime.getURL('options.html') }));
