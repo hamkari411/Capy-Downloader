@@ -23,6 +23,7 @@ function friendlyError(err) {
       ? 'El programa local es de una versión anterior.\nEjecuta "python install.py" otra vez y reinicia el navegador.'
       : e;
   if (/^Instagram no dejó|solo está disponible con marca de agua/i.test(e)) return e;
+  if (/firma de la actualización|actualización|última versión|consultar GitHub/i.test(e)) return e;
   if (/private|unavailable/i.test(e)) return 'Este video es privado o no está disponible.';
   return e;
 }
@@ -176,6 +177,36 @@ function renderChips(current) {
   }
 }
 
+// ---- Aviso de versión nueva de Capy Downloader ----
+function updMsg(text, isError = false) {
+  const el = $('#updMsg');
+  el.textContent = text || '';
+  el.classList.toggle('error', isError);
+}
+
+async function showUpdateBanner() {
+  const r = await chrome.runtime.sendMessage({ cmd: 'capy_update_info' });
+  if (!r?.ok || !r.data.available) return;
+  const { dismissed } = await chrome.storage.local.get({ dismissed: '' });
+  if (dismissed === r.data.latest) return;
+  $('#updVer').textContent = r.data.latest;
+  $('#updNotes').textContent = r.data.notes || 'Sin notas.';
+  $('#updBanner').hidden = false;
+}
+
+$('#updNotesBtn').addEventListener('click', () => { $('#updNotes').hidden = !$('#updNotes').hidden; });
+$('#updLater').addEventListener('click', async () => {
+  await chrome.storage.local.set({ dismissed: $('#updVer').textContent });
+  $('#updBanner').hidden = true;
+});
+$('#updApply').addEventListener('click', async () => {
+  $('#updApply').disabled = true;
+  updMsg('Descargando y comprobando la firma… La extensión se reiniciará sola al terminar.');
+  const r = await chrome.runtime.sendMessage({ cmd: 'capy_apply_update' });
+  if (r?.ok) updMsg(`Versión ${r.data.version} instalada. Reiniciando…`);
+  else { $('#updApply').disabled = false; updMsg(friendlyError(r?.error), true); }
+});
+
 $('#settings').addEventListener('click', () => togglePanel());
 $('#changeDir').addEventListener('click', () => togglePanel(true));
 $('#moreSettings').addEventListener('click', () => chrome.runtime.sendMessage({ cmd: 'open_options' }));
@@ -212,6 +243,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (pickError) { togglePanel(true); panelMsg(friendlyError(pickError), true); chrome.storage.local.set({ pickError: '' }); }
   const { jobs } = await chrome.storage.session.get('jobs');
   renderJobs(jobs);
+  showUpdateBanner();
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const platform = tab?.url ? platformOf(tab.url) : null;
