@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Genera las versiones listas para cargar en cada navegador:
-  dist/brave    -> Brave, Chrome, Edge (service worker + clave para ID fijo)
-  dist/firefox  -> Firefox (script de fondo + ID de complemento)
+  dist/chromium -> Chrome, Brave, Edge, Opera, Vivaldi y demás navegadores basados en Chromium
+  dist/brave    -> copia idéntica de dist/chromium (para quien ya la cargó con ese nombre)
+  dist/firefox  -> Firefox y navegadores basados en Firefox (LibreWolf, Waterfox, Zen, Floorp...)
 Así ninguno de los dos navegadores muestra avisos por campos que no entiende.
 Uso: python build.py
 """
@@ -22,8 +23,12 @@ FIREFOX_ID = "capy-ytdl@capybara"
 
 def build(target, extra):
     out = os.path.join(DIST, target)
-    shutil.rmtree(out, ignore_errors=True)
-    shutil.copytree(SRC, out, ignore=shutil.ignore_patterns("manifest.base.json"))
+    # Se reemplaza el contenido sin borrar la carpeta: el navegador puede tenerla cargada.
+    if os.path.isdir(out):
+        for name in os.listdir(out):
+            path = os.path.join(out, name)
+            shutil.rmtree(path, ignore_errors=True) if os.path.isdir(path) else os.remove(path)
+    shutil.copytree(SRC, out, ignore=shutil.ignore_patterns("manifest.base.json"), dirs_exist_ok=True)
     with open(os.path.join(SRC, "manifest.base.json"), encoding="utf-8") as f:
         manifest = json.load(f)
     manifest.update(extra)
@@ -33,16 +38,15 @@ def build(target, extra):
 
 
 def main():
-    brave = build("brave", {
-        "key": CHROMIUM_KEY,
-        "background": {"service_worker": "background.js"},
-    })
+    chromium_extra = {"key": CHROMIUM_KEY, "background": {"service_worker": "background.js"}}
+    chromium = build("chromium", chromium_extra)
+    build("brave", chromium_extra)
     firefox = build("firefox", {
         "background": {"scripts": ["background.js"]},
         "browser_specific_settings": {"gecko": {"id": FIREFOX_ID, "strict_min_version": "121.0"}},
     })
-    print("Versión para Brave/Chrome:", brave)
-    print("Versión para Firefox:     ", firefox)
+    print("Versión para navegadores Chromium (Chrome, Brave, Edge, Opera, Vivaldi):", chromium)
+    print("Versión para navegadores Firefox (Firefox, LibreWolf, Waterfox, Zen):   ", firefox)
 
 
 if __name__ == "__main__":
