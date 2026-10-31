@@ -115,6 +115,43 @@ $('#updateNow').addEventListener('click', async () => {
   loadEngine();
 });
 
+// ---- Actualizaciones de Capy Downloader ----
+const capyMsg = (text, kind = '') => { $('#capyMsg').textContent = text; $('#capyMsg').className = 'msg ' + kind; };
+
+function renderCapy(d) {
+  $('#capyCur').textContent = d.current || '…';
+  $('#capyAuto').checked = d.auto !== false;
+  $('#capyApply').hidden = !d.available;
+  $('#capyLatest').textContent = d.available ? `(hay una versión nueva: ${d.latest})`
+    : d.latest ? '(es la última versión)' : '';
+  if (!d.configured) capyMsg('Esta copia no tiene configurada la clave de actualizaciones.', 'error');
+}
+
+async function loadCapy(force = false) {
+  const r = await chrome.runtime.sendMessage({ cmd: force ? 'capy_check_update' : 'capy_update_info' });
+  if (!r?.ok) { if (force) capyMsg(r?.error || 'No se pudo consultar.', 'error'); return; }
+  renderCapy(r.data);
+  if (force) capyMsg(r.data.available ? `Hay una versión nueva: ${r.data.latest}.` : 'Ya tienes la última versión.', 'ok');
+}
+
+$('#capyAuto').addEventListener('change', async e => {
+  const r = await chrome.runtime.sendMessage({ cmd: 'capy_set_auto', value: e.target.checked });
+  capyMsg(r?.ok ? (e.target.checked ? 'Se buscarán versiones nuevas una vez al día.' : 'Búsqueda automática desactivada.') : (r?.error || 'Error'), r?.ok ? 'ok' : 'error');
+});
+$('#capyCheck').addEventListener('click', async () => {
+  $('#capyCheck').disabled = true;
+  capyMsg('Consultando GitHub…');
+  await loadCapy(true);
+  $('#capyCheck').disabled = false;
+});
+$('#capyApply').addEventListener('click', async () => {
+  $('#capyApply').disabled = true;
+  capyMsg('Descargando y comprobando la firma… La extensión se reiniciará sola al terminar.');
+  const r = await chrome.runtime.sendMessage({ cmd: 'capy_apply_update' });
+  if (r?.ok) capyMsg(`Versión ${r.data.version} instalada. Reiniciando…`, 'ok');
+  else { $('#capyApply').disabled = false; capyMsg(r?.error || 'No se pudo actualizar.', 'error'); }
+});
+
 (async function init() {
   $('#ver').textContent = chrome.runtime.getManifest().version;
   const s = await capyLoadSettings();
@@ -126,4 +163,5 @@ $('#updateNow').addEventListener('click', async () => {
   renderThemes(s.theme);
   syncAccentPicker();
   loadEngine();
+  loadCapy();
 })();
