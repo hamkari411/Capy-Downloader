@@ -116,18 +116,20 @@ Al final deberías ver líneas como `Registrado en ...` y `FFmpeg encontrado.`
 2. Activa **Modo de desarrollador**.
 3. Pulsa **Cargar descomprimida** (o "Cargar sin empaquetar") y elige la carpeta `dist/chromium`.
 4. Cierra el navegador **por completo** y vuelve a abrirlo.
-5. Fija **Capy Downloader** en la barra desde el icono de extensiones.
+5. Fija **Capy Downloader** en la barra: icono de extensiones (pieza de rompecabezas) y chincheta.
+6. Si quieres usarla en **incógnito**, entra en **Detalles** de la extensión y activa **Permitir en modo incógnito**.
+
+En los navegadores Chromium, una extensión cargada así **se queda instalada** aunque cierres el navegador.
 
 > Si ya la tenías cargada desde `dist/brave`, puedes seguir usándola: es la misma versión.
 
 ### Paso 3B. Navegadores basados en Firefox (Firefox, LibreWolf, Waterfox, Zen, Floorp)
 
-1. Abre `about:debugging#/runtime/this-firefox`.
-2. Pulsa **Cargar complemento temporal** y elige `dist/firefox/manifest.json`.
+**Instalación permanente (recomendada):** descarga `capy-downloader-firefox-X.Y.Z.xpi` del [último release](https://github.com/hamkari411/Capy-Downloader/releases/latest) y arrástralo a una ventana de Firefox. Es la versión firmada por Mozilla: se queda instalada aunque cierres el navegador y Firefox la actualiza solo. Al instalarla, marca **Permitir en ventanas privadas** si quieres usarla en incógnito.
 
-Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
-- **Opción A:** fírmala gratis en [addons.mozilla.org](https://addons.mozilla.org/developers/) como complemento **no listado**. Sube un zip con el contenido de `dist/firefox/` y Mozilla te devuelve un `.xpi` firmado que se instala de forma permanente.
-- **Opción B:** usa Firefox Developer Edition, pon `xpinstall.signatures.required` en `false` desde `about:config` e instala el zip del contenido de `dist/firefox/`.
+**Para pruebas:** abre `about:debugging#/runtime/this-firefox`, pulsa **Cargar complemento temporal** y elige `dist/firefox/manifest.json`. Ojo: los complementos temporales **se borran al cerrar Firefox**.
+
+Guía completa, paso a paso: [docs/FIREFOX.md](docs/FIREFOX.md).
 
 > En Linux, Firefox instalado como Snap o Flatpak no puede comunicarse con programas locales. Usa la versión `.deb` o la de mozilla.org.
 
@@ -142,7 +144,8 @@ Los complementos temporales se borran al cerrar Firefox. Para dejarla fija:
 
 Pulsa el engranaje del popup (o el enlace **Cambiar** junto a la carpeta) y se despliega un panel para elegir la carpeta y el color. En **Más ajustes** se abre una pestaña donde además puedes:
 
-- **Elegir la carpeta de descargas** con el botón **Elegir carpeta**, que abre el selector de carpetas de tu sistema. También puedes escribir la ruta a mano y pulsar **Guardar ruta escrita**, o volver a **Descargas**.
+- **Elegir la carpeta de descargas** con el botón **Elegir carpeta**, que abre el explorador de carpetas de Capy (accesos a Descargas, Escritorio, Documentos, Videos, Música y tus discos, y botón para crear carpetas). También puedes escribir la ruta a mano y pulsar **Guardar ruta escrita**, o volver a **Descargas**.
+- **Revisar si funciona en incógnito** y cómo dejar el icono fijo en la barra.
 - **Cambiar el color de la interfaz**: elige un tema y, si quieres, un color de acento propio.
 - **Ver la versión de yt-dlp**, activar o desactivar la actualización automática y **actualizar al momento**.
 - **Buscar versiones nuevas de Capy Downloader** e instalarlas con un botón.
