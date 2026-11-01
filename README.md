@@ -80,7 +80,7 @@ capy-yt-downloader/
 |---|---|---|
 | Python 3.9 o más nuevo | Ejecutar el programa local | [python.org](https://www.python.org/downloads/). En Windows marca **"Add Python to PATH"** |
 | FFmpeg | Unir video y audio (720p o más) y convertir a MP3 | Windows: `winget install Gyan.FFmpeg`. macOS: `brew install ffmpeg`. Linux: `sudo apt install ffmpeg` |
-| Un navegador compatible | Usar la extensión | **Basados en Chromium:** Chrome, Brave, Edge, Opera, Vivaldi, Chromium. **Basados en Firefox (121 o más nuevo):** Firefox, LibreWolf, Waterfox, Zen, Floorp |
+| Un navegador compatible | Usar la extensión | **Basados en Chromium:** Chrome, Brave, Edge, Opera, Vivaldi, Chromium. **Basados en Firefox (140 o más nuevo):** Firefox, LibreWolf, Waterfox, Zen, Floorp |
 
 ### Paso 1. Descarga el proyecto
 

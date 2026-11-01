@@ -15,6 +15,7 @@
 - Descargas usa la ubicación real de esa carpeta en Windows, aunque la hayas movido a otro disco o a OneDrive.
 - Se eliminó la ventana del sistema para elegir carpeta (y su dependencia de tkinter).
 - `tools/release.py firefox` firma la versión de Firefox automáticamente.
+- La versión de Firefox declara que no recoge datos personales (lo exige Mozilla) y necesita Firefox 140 o más nuevo.
 
 #### Cómo actualizar desde la 1.3.1
 - **Chrome, Brave, Edge, Opera, Vivaldi:** abre el popup y pulsa **Actualizar**.
@@ -145,6 +146,7 @@ El proyecto nació como **Capy YT Downloader**, solo para YouTube. Desde esta ve
 - Downloads uses the real location of that folder on Windows, even if you moved it to another drive or to OneDrive.
 - The system folder window (and its tkinter dependency) was removed.
 - `tools/release.py firefox` signs the Firefox build automatically.
+- The Firefox build declares that it collects no personal data (required by Mozilla) and needs Firefox 140 or newer.
 
 #### How to update from 1.3.1
 - **Chrome, Brave, Edge, Opera, Vivaldi:** open the popup and click **Update**.
