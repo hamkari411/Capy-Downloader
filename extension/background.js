@@ -5,7 +5,6 @@ let port = null;
 let seq = 0;
 const waiters = new Map(); // respuestas puntuales (info, ping, open)
 let jobs = {};             // descargas en curso / terminadas
-let picking = false;       // hay un selector de carpetas abierto
 
 chrome.storage.session.get('jobs').then(r => { jobs = r.jobs || {}; });
 
@@ -131,27 +130,17 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     return true;
   }
 
-  if (m.cmd === 'pick_folder' || m.cmd === 'default_dir') {
-    // El fondo hace la petición y guarda el resultado él mismo: así funciona
-    // aunque el popup se cierre cuando aparece la ventana del selector.
-    if (m.cmd === 'pick_folder') {
-      if (picking) {
-        reply({ ok: false, error: 'Ya hay una ventana abierta para elegir carpeta. Búscala en la barra de tareas.' });
-        return false;
-      }
-      picking = true;
-      chrome.storage.local.set({ pickError: '' });
-    }
-    request(m.cmd, { initial: m.initial || '' })
-      .finally(() => { if (m.cmd === 'pick_folder') picking = false; })
-      .then(async r => {
-        if (m.cmd === 'pick_folder' && r.path) await chrome.storage.local.set({ downloadDir: r.path });
-        reply({ ok: true, path: r.path });
-      })
-      .catch(async e => {
-        if (m.cmd === 'pick_folder') await chrome.storage.local.set({ pickError: String(e) });
-        reply({ ok: false, error: String(e) });
-      });
+  if (m.cmd === 'default_dir') {
+    request('default_dir')
+      .then(r => reply({ ok: true, path: r.path }))
+      .catch(e => reply({ ok: false, error: String(e) }));
+    return true;
+  }
+
+  if (m.cmd === 'list_dirs' || m.cmd === 'make_dir') {
+    request(m.cmd, { path: m.path || '', name: m.name || '' })
+      .then(r => reply({ ok: true, data: r.data, path: r.path }))
+      .catch(e => reply({ ok: false, error: String(e) }));
     return true;
   }
 
@@ -173,7 +162,11 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
         reply({ ok: true, data: r });
         if (m.cmd === 'capy_update_info' || m.cmd === 'capy_check_update') markUpdate(r);
         // Tras instalar una versión nueva, la extensión se recarga para usar los archivos nuevos.
-        if (r.reload) setTimeout(() => chrome.runtime.reload(), 400);
+        // En Firefox con la extensión firmada, además se pide a Firefox que busque la versión nueva.
+        if (r.reload) {
+          try { chrome.runtime.requestUpdateCheck?.(() => {}); } catch {}
+          setTimeout(() => chrome.runtime.reload(), 400);
+        }
       })
       .catch(e => reply({ ok: false, error: String(e) }));
     return true;
@@ -190,7 +183,8 @@ chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     const id = newId('dl');
     jobs[id] = {
       id, title: m.title, label: m.label, status: 'running',
-      percent: 0, stage: 'Iniciando', created: Date.now()
+      percent: 0, stage: 'Iniciando', created: Date.now(),
+      incognito: !!m.incognito  // las descargas de incógnito solo se ven en ventanas de incógnito
     };
     save();
     chrome.storage.local.get({ downloadDir: '' }).then(({ downloadDir }) => {
