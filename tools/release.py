@@ -2,8 +2,10 @@
 """
 Herramienta para publicar versiones de Capy Downloader (solo para quien mantiene el proyecto).
 
-  python tools/release.py keygen   Crea la clave de firma (una sola vez).
-  python tools/release.py build    Crea el zip firmado de la versión actual.
+  python tools/release.py keygen     Crea la clave de firma (una sola vez).
+  python tools/release.py build      Crea el zip firmado de la versión actual.
+  python tools/release.py amo-setup  Guarda tus claves de la API de Firefox Add-ons (una sola vez).
+  python tools/release.py firefox    Pide a Mozilla que firme la versión de Firefox (.xpi permanente).
 
 La clave privada se guarda fuera del proyecto, en la carpeta .capy-downloader-signing
 de tu usuario. Nunca la subas a GitHub ni la compartas: quien la tenga puede publicar
@@ -11,6 +13,8 @@ actualizaciones que todos los usuarios aceptarían.
 """
 import json
 import os
+import shutil
+import subprocess
 import sys
 import zipfile
 
@@ -89,11 +93,62 @@ def build():
     print(f"\nCrea el release v{version} en GitHub y adjunta estos dos archivos.")
 
 
+AMO_FILE = os.path.join(KEY_DIR, "amo.json")
+
+
+def amo_setup():
+    print("Crea tus claves en https://addons.mozilla.org/developers/addon/api/key/")
+    issuer = input("JWT issuer (empieza con user:): ").strip()
+    secret = input("JWT secret: ").strip()
+    os.makedirs(KEY_DIR, exist_ok=True)
+    with open(AMO_FILE, "w", encoding="utf-8") as f:
+        json.dump({"issuer": issuer, "secret": secret}, f)
+    try:
+        os.chmod(AMO_FILE, 0o600)
+    except OSError:
+        pass
+    print(f"Guardadas en {AMO_FILE} (fuera del proyecto; no las subas a GitHub).")
+
+
+def firefox():
+    """Firma la versión de Firefox en addons.mozilla.org como complemento no listado."""
+    if not os.path.exists(AMO_FILE):
+        sys.exit("Faltan tus claves de Firefox Add-ons. Ejecuta primero: python tools/release.py amo-setup")
+    npx = shutil.which("npx") or shutil.which("npx.cmd")
+    if not npx:
+        sys.exit("Necesitas Node.js (incluye npx): https://nodejs.org . También puedes subir el zip de "
+                 "dist/firefox a mano en addons.mozilla.org como complemento no listado.")
+    with open(AMO_FILE, encoding="utf-8") as f:
+        amo = json.load(f)
+    with open(os.path.join(ROOT, "extension", "manifest.base.json"), encoding="utf-8") as f:
+        version = json.load(f)["version"]
+    subprocess.check_call([sys.executable, os.path.join(ROOT, "build.py")])
+    out_dir = os.path.join(ROOT, "releases", "firefox-tmp")
+    shutil.rmtree(out_dir, ignore_errors=True)
+    print("Enviando a Mozilla para firmar (puede tardar unos minutos)...")
+    subprocess.check_call([npx, "--yes", "web-ext@8", "sign", "--channel", "unlisted",
+                           "--source-dir", os.path.join(ROOT, "dist", "firefox"),
+                           "--artifacts-dir", out_dir,
+                           "--api-key", amo["issuer"], "--api-secret", amo["secret"]])
+    xpis = [f for f in os.listdir(out_dir) if f.endswith(".xpi")]
+    if not xpis:
+        sys.exit("Mozilla no devolvió el archivo firmado. Revisa los mensajes de arriba.")
+    final = os.path.join(ROOT, "releases", f"capy-downloader-firefox-{version}.xpi")
+    shutil.move(os.path.join(out_dir, xpis[0]), final)
+    shutil.rmtree(out_dir, ignore_errors=True)
+    print(f"Listo: {final}")
+    print("Adjúntalo también al release de GitHub. Para instalarlo, arrástralo a una ventana de Firefox.")
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "keygen":
         keygen()
     elif cmd == "build":
         build()
+    elif cmd == "amo-setup":
+        amo_setup()
+    elif cmd == "firefox":
+        firefox()
     else:
         print(__doc__)
