@@ -19,6 +19,8 @@ DIST = os.path.join(ROOT, "dist")
 # a la extensión cargada sin empaquetar. No es un secreto ni da acceso a nada.
 CHROMIUM_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwOeaJPrgnUskpiS3hEzk0g3K+7GnKinmcKf2k8a2tkiosGq6OACdzzotdjc0Bgc5iy2lP3bGFRg309bLEM9F7GFqc2svTONDe0MFqZ9f/1lEaWWpqojRf1aCBM3VMra2nY+y4KVoT7gAwAZgTP7vuN0nppNL+PAfEK5WniYryXyD7HNSFG5Fmc2GnSQ7ObmWAOHqf8+WR56gow4nt6c985VHh5TfFKCxGhe9sroq2gVvzQdJz9NN1mlE/S2RYHgElcO/nq5s/cx+QC7nI03uKgZPrBY29ELwC7mYVV+AADmsMxU3KLsHMmfYQpxwB1pcX7XWYYCqc9/0/gPaDIQmUQIDAQAB"
 FIREFOX_ID = "capy-ytdl@capybara"
+# Firefox revisa este archivo para actualizar la versión firmada (instalación permanente).
+FIREFOX_UPDATES = "https://raw.githubusercontent.com/hamkari411/Capy-Downloader/main/updates.json"
 
 
 def build(target, extra):
@@ -41,9 +43,13 @@ def main():
     chromium_extra = {"key": CHROMIUM_KEY, "background": {"service_worker": "background.js"}}
     chromium = build("chromium", chromium_extra)
     build("brave", chromium_extra)
+    with open(os.path.join(SRC, "manifest.base.json"), encoding="utf-8") as f:
+        action = json.load(f)["action"]
     firefox = build("firefox", {
         "background": {"scripts": ["background.js"]},
-        "browser_specific_settings": {"gecko": {"id": FIREFOX_ID, "strict_min_version": "121.0"}},
+        "browser_specific_settings": {"gecko": {
+            "id": FIREFOX_ID, "strict_min_version": "121.0", "update_url": FIREFOX_UPDATES}},
+        "action": dict(action, default_area="navbar"),  # el icono aparece fijo en la barra
     })
     print("Versión para navegadores Chromium (Chrome, Brave, Edge, Opera, Vivaldi):", chromium)
     print("Versión para navegadores Firefox (Firefox, LibreWolf, Waterfox, Zen):   ", firefox)

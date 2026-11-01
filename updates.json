@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "capy-ytdl@capybara": {
+      "updates": [
+        {
+          "version": "1.4.0",
+          "update_link": "https://github.com/hamkari411/Capy-Downloader/releases/download/v1.4.0/capy-downloader-firefox-1.4.0.xpi"
+        }
+      ]
+    }
+  }
+}
