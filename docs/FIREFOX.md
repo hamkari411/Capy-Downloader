@@ -20,6 +20,8 @@ El programa local se instala igual que siempre con `python install.py`; ya queda
 
 La firma se hace gratis en addons.mozilla.org como complemento **no listado** (no aparece en la tienda; es para distribuirlo tú). Cada número de versión se puede firmar **una sola vez**.
 
+Mozilla exige que el manifest declare qué datos personales recoge la extensión. Capy no recoge ninguno, y `build.py` ya lo declara (`data_collection_permissions: none`). Por eso la versión de Firefox necesita **Firefox 140 o más nuevo**.
+
 ### Una sola vez
 1. Entra en **addons.mozilla.org/developers** con una cuenta de Firefox y acepta el acuerdo de desarrollador.
 

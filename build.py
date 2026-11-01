@@ -47,8 +47,11 @@ def main():
         action = json.load(f)["action"]
     firefox = build("firefox", {
         "background": {"scripts": ["background.js"]},
+        # Mozilla exige declarar qué datos personales recoge la extensión: Capy no recoge ninguno.
+        # Esa declaración existe desde Firefox 140, por eso es la versión mínima.
         "browser_specific_settings": {"gecko": {
-            "id": FIREFOX_ID, "strict_min_version": "121.0", "update_url": FIREFOX_UPDATES}},
+            "id": FIREFOX_ID, "strict_min_version": "140.0", "update_url": FIREFOX_UPDATES,
+            "data_collection_permissions": {"required": ["none"]}}},
         "action": dict(action, default_area="navbar"),  # el icono aparece fijo en la barra
     })
     print("Versión para navegadores Chromium (Chrome, Brave, Edge, Opera, Vivaldi):", chromium)
