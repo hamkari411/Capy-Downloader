@@ -59,7 +59,9 @@ Crea dos claves:
 3. Ejecuta `python build.py` y prueba `dist/chromium` y `dist/firefox`.
 4. Sube los cambios a GitHub.
 5. Ejecuta `python tools/release.py build`. Crea en la carpeta `releases` el zip y su firma.
-6. Crea un release en GitHub con la etiqueta `vX.Y.Z`, pega las notas del CHANGELOG y **adjunta los dos archivos** (`.zip` y `.zip.sig`). Sin ellos, los usuarios no recibirán la actualización.
+6. Ejecuta `python tools/release.py firefox`. Mozilla firma la versión de Firefox y deja `capy-downloader-firefox-X.Y.Z.xpi` en `releases`. La primera vez necesitas tus claves de Firefox Add-ons (`python tools/release.py amo-setup`) y Node.js instalado.
+7. Crea un release en GitHub con la etiqueta `vX.Y.Z`, pega las notas del CHANGELOG y **adjunta los tres archivos** (`.zip`, `.zip.sig` y `.xpi`). Sin ellos, los usuarios no recibirán la actualización.
+8. Actualiza `updates.json` en la raíz del repositorio con la versión nueva y el enlace al `.xpi`: es el archivo que Firefox consulta para actualizar la versión firmada.
 
 Te recomiendo activar la verificación en dos pasos en tu cuenta de GitHub: es la puerta de entrada de las actualizaciones de todos los usuarios.
 

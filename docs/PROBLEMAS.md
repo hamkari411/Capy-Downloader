@@ -15,8 +15,14 @@ Reinstala Python marcando la casilla Add Python to PATH.
 **La carpeta de descargas no existe**
 La carpeta que elegiste en Ajustes se borró o cambió de nombre. Abre Ajustes y elige otra.
 
-**El botón Elegir carpeta no abre nada**
-En algunas instalaciones de Python en Linux falta tkinter. Escribe la ruta a mano y pulsa Guardar ruta escrita.
+**La extensión desaparece al cerrar Firefox**
+Estás usando la versión temporal de `about:debugging`. Instala la versión firmada (`capy-downloader-firefox-X.Y.Z.xpi`) del último release: se queda para siempre y se actualiza sola.
+
+**No funciona en incógnito o en ventanas privadas**
+En Chromium: Detalles de la extensión, activa "Permitir en modo incógnito". En Firefox: about:addons, Capy Downloader, "Ejecutar en ventanas privadas": Permitir. En Ajustes de Capy puedes ver si está activado. Las descargas hechas en incógnito solo aparecen en la lista cuando abres el popup desde una ventana de incógnito.
+
+**No tienes permiso para abrir esta carpeta**
+Algunas carpetas del sistema están protegidas. Elige otra, por ejemplo Descargas o Videos.
 
 **Instagram no dejó descargar la publicación**
 La extensión no usa tu sesión de Instagram por seguridad, así que solo funcionan reels y publicaciones públicas, e Instagram a veces bloquea las descargas sin sesión. Espera un rato y vuelve a intentarlo. Las cuentas privadas no se pueden descargar.
