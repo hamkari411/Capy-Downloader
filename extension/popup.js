@@ -1,6 +1,7 @@
 const $ = s => document.querySelector(s);
 const statusEl = $('#status');
 let current = null; // { url, info }
+let incognito = false; // ventana de incógnito o privada
 
 function setStatus(text, isError = false) {
   statusEl.hidden = !text;
@@ -18,7 +19,7 @@ function friendlyError(err) {
   if (/ffmpeg/i.test(e)) return 'Falta FFmpeg: es necesario para unir video y audio y para convertir a MP3.';
   if (/not a bot|sign in/i.test(e))
     return 'YouTube pidió verificación.\nActualiza yt-dlp: python -m pip install -U yt-dlp';
-  if (/carpeta de descargas no existe|selector de carpetas|ventana abierta para elegir|Acción desconocida/i.test(e))
+  if (/carpeta de descargas no existe|permiso para|nombre de carpeta|Acción desconocida/i.test(e))
     return /Acción desconocida/i.test(e)
       ? 'El programa local es de una versión anterior.\nEjecuta "python install.py" otra vez y reinicia el navegador.'
       : e;
@@ -89,13 +90,15 @@ document.querySelectorAll('[data-audio]').forEach(b => {
 async function startDownload(opts) {
   if (!current) return;
   const r = await chrome.runtime.sendMessage({
-    cmd: 'download', url: current.url, title: current.info.title, ...opts
+    cmd: 'download', url: current.url, title: current.info.title, incognito, ...opts
   });
   if (!r?.ok) setStatus(friendlyError(r?.error), true);
 }
 
 function renderJobs(jobs) {
-  const list = Object.values(jobs || {}).sort((a, b) => b.created - a.created);
+  const list = Object.values(jobs || {})
+    .filter(j => !!j.incognito === incognito)  // no mezclar descargas privadas y normales
+    .sort((a, b) => b.created - a.created);
   $('#jobs-wrap').hidden = list.length === 0;
   const ul = $('#jobs');
   ul.innerHTML = '';
@@ -145,7 +148,7 @@ function togglePanel(force) {
 function showDir(dir) {
   const text = dir || 'Descargas';
   $('#panelDir').textContent = text;
-  $('#destPath').textContent = text;
+  $('#destPath').textContent = '\u2066' + text + '\u2069';
 }
 
 function panelMsg(text, isError = false) {
@@ -215,13 +218,17 @@ $('#resetDir').addEventListener('click', async () => {
   await chrome.storage.local.set({ downloadDir: '' });
   panelMsg('Las descargas irán a Descargas.');
 });
+const picker = capyFolderPicker($('#panelPicker'), {
+  async onPick(path) {
+    await chrome.storage.local.set({ downloadDir: path });
+    picker.close();
+    panelMsg('Carpeta guardada.');
+  }
+});
 $('#pickDir').addEventListener('click', async () => {
-  panelMsg('Se abrirá una ventana para elegir la carpeta. Si el popup se cierra, la carpeta se guarda igual.');
+  panelMsg('');
   const { downloadDir } = await chrome.storage.local.get({ downloadDir: '' });
-  const r = await chrome.runtime.sendMessage({ cmd: 'pick_folder', initial: downloadDir });
-  if (!r?.ok) panelMsg(friendlyError(r?.error), true);
-  else if (!r.path) panelMsg('No elegiste ninguna carpeta.');
-  else panelMsg('Carpeta guardada.');
+  picker.open(downloadDir);
 });
 
 chrome.storage.onChanged.addListener((c, area) => {
@@ -240,13 +247,12 @@ chrome.storage.onChanged.addListener((changes, area) => {
   const settings = await capyLoadSettings();
   showDir(settings.downloadDir);
   renderChips(settings.theme);
-  const { pickError } = await chrome.storage.local.get({ pickError: '' });
-  if (pickError) { togglePanel(true); panelMsg(friendlyError(pickError), true); chrome.storage.local.set({ pickError: '' }); }
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  incognito = !!tab?.incognito;
   const { jobs } = await chrome.storage.session.get('jobs');
   renderJobs(jobs);
   showUpdateBanner();
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const platform = tab?.url ? platformOf(tab.url) : null;
   if (!platform) {
     setStatus('Abre un video de YouTube, TikTok o un reel de Instagram y vuelve a pulsar el icono.');
