@@ -4,6 +4,22 @@
 
 ## Español
 
+### 1.4.0
+
+#### Novedades
+- **Explorador de carpetas propio.** "Elegir carpeta" ya no abre la ventana del sistema (que a veces tardaba o se quedaba detrás del navegador). Ahora se abre al instante dentro de la extensión, con accesos a Descargas, Escritorio, Documentos, Videos, Música y tus discos, y un botón para crear carpetas.
+- **Firefox permanente.** Versión firmada por Mozilla (`capy-downloader-firefox-X.Y.Z.xpi`) que se queda instalada al cerrar Firefox y se actualiza sola. Su icono aparece fijo en la barra.
+- **Incógnito y ventanas privadas.** Ajustes muestra si la extensión tiene permiso y cómo activarlo. Las descargas hechas en incógnito no aparecen en las ventanas normales.
+
+#### Cambios
+- Descargas usa la ubicación real de esa carpeta en Windows, aunque la hayas movido a otro disco o a OneDrive.
+- Se eliminó la ventana del sistema para elegir carpeta (y su dependencia de tkinter).
+- `tools/release.py firefox` firma la versión de Firefox automáticamente.
+
+#### Cómo actualizar desde la 1.3.1
+- **Chrome, Brave, Edge, Opera, Vivaldi:** abre el popup y pulsa **Actualizar**.
+- **Firefox:** instala `capy-downloader-firefox-1.4.0.xpi` del release arrastrándolo a Firefox. A partir de ahí, Firefox la actualiza solo. Guía paso a paso en `docs/FIREFOX.md`.
+
 ### 1.3.1
 
 #### Cambios
@@ -117,6 +133,22 @@ El proyecto nació como **Capy YT Downloader**, solo para YouTube. Desde esta ve
 - Primera versión: descarga de video en todas las resoluciones y de solo audio (MP3, M4A u original) en Brave y Firefox.
 
 ## English
+
+### 1.4.0
+
+#### What's new
+- **Built-in folder browser.** "Choose folder" no longer opens the system window (which sometimes was slow or stayed behind the browser). It now opens instantly inside the extension, with shortcuts to Downloads, Desktop, Documents, Videos, Music and your drives, plus a button to create folders.
+- **Permanent Firefox install.** A Mozilla-signed build (`capy-downloader-firefox-X.Y.Z.xpi`) that stays installed after closing Firefox and updates itself. Its icon is pinned to the toolbar.
+- **Incognito and private windows.** Settings shows whether the extension has permission and how to enable it. Downloads made in incognito don't show up in normal windows.
+
+#### Changes
+- Downloads uses the real location of that folder on Windows, even if you moved it to another drive or to OneDrive.
+- The system folder window (and its tkinter dependency) was removed.
+- `tools/release.py firefox` signs the Firefox build automatically.
+
+#### How to update from 1.3.1
+- **Chrome, Brave, Edge, Opera, Vivaldi:** open the popup and click **Update**.
+- **Firefox:** install `capy-downloader-firefox-1.4.0.xpi` from the release by dragging it into Firefox. From then on, Firefox updates it by itself. Step-by-step guide (Spanish) in `docs/FIREFOX.md`.
 
 ### 1.3.1
 
