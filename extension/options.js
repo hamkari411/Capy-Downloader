@@ -54,21 +54,15 @@ function toHex(c) {
   return m ? '#' + m.slice(0, 3).map(n => (+n).toString(16).padStart(2, '0')).join('') : '';
 }
 
-$('#pick').addEventListener('click', async () => {
-  const btn = $('#pick');
-  btn.disabled = true;
-  msg('Se abrió una ventana para elegir la carpeta. Si no la ves, revisa la barra de tareas.');
-  const r = await chrome.runtime.sendMessage({ cmd: 'pick_folder', initial: dirInput.value });
-  btn.disabled = false;
-  if (!r?.ok) {
-    const e = String(r?.error || '');
-    return msg(/Acción desconocida/i.test(e)
-      ? 'El programa local es de una versión anterior. Ejecuta "python install.py" otra vez y reinicia el navegador.'
-      : (e || 'No se pudo abrir el selector.'), 'error');
+const dirPicker = capyFolderPicker($('#dirPicker'), {
+  async onPick(path) {
+    dirPicker.close();
+    await saveDir(path);
   }
-  if (!r.path) return msg('No elegiste ninguna carpeta; se mantiene la anterior.');
-  dirInput.value = r.path;
-  msg('Las descargas se guardarán en esta carpeta.', 'ok');
+});
+$('#pick').addEventListener('click', () => {
+  msg('');
+  dirPicker.open(dirInput.value.trim());
 });
 
 $('#saveDir').addEventListener('click', () => saveDir(dirInput.value.trim()));
@@ -152,6 +146,25 @@ $('#capyApply').addEventListener('click', async () => {
   else { $('#capyApply').disabled = false; capyMsg(r?.error || 'No se pudo actualizar.', 'error'); }
 });
 
+// ---- Navegador: incógnito y barra ----
+const isFirefox = typeof browser !== 'undefined' && /firefox/i.test(navigator.userAgent);
+
+async function loadBrowserInfo() {
+  let allowed = false;
+  try { allowed = await chrome.extension.isAllowedIncognitoAccess(); } catch {}
+  $('#incoState').textContent = allowed ? 'activado' : 'desactivado';
+  $('#incoHelp').hidden = allowed;
+  $('#incoOpen').hidden = allowed || isFirefox;
+  $('#incoHelp').textContent = isFirefox
+    ? 'Para activarlo: abre about:addons, entra en Capy Downloader y en "Ejecutar en ventanas privadas" elige "Permitir".'
+    : 'Para activarlo: pulsa el botón, busca "Permitir en modo incógnito" y actívalo.';
+  $('#pinHelp').textContent = isFirefox
+    ? 'En Firefox el icono aparece fijo en la barra. Si lo quitaste, pulsa el icono de extensiones (pieza de rompecabezas), busca Capy Downloader y elige "Fijar en la barra".'
+    : 'Para dejar el icono fijo: pulsa el icono de extensiones (pieza de rompecabezas) en la barra y luego la chincheta junto a Capy Downloader.';
+}
+$('#incoOpen').addEventListener('click', () =>
+  chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` }));
+
 (async function init() {
   $('#ver').textContent = chrome.runtime.getManifest().version;
   const s = await capyLoadSettings();
@@ -164,4 +177,5 @@ $('#capyApply').addEventListener('click', async () => {
   syncAccentPicker();
   loadEngine();
   loadCapy();
+  loadBrowserInfo();
 })();

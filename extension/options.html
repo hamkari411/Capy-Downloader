@@ -5,6 +5,7 @@
   <title>Ajustes de Capy Downloader</title>
   <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="options.css">
+  <link rel="stylesheet" href="folderpicker.css">
 </head>
 <body>
   <main>
@@ -25,7 +26,17 @@
         <button id="resetDir" class="link">Usar Descargas</button>
         <button id="openDir" class="link">Abrir carpeta</button>
       </div>
+      <div id="dirPicker" hidden></div>
       <p id="dirMsg" class="msg" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Navegador</h2>
+      <p class="hint">La extensión se queda instalada aunque cierres el navegador. Aquí puedes revisar si funciona en incógnito y cómo dejarla fija en la barra.</p>
+      <p>Ventanas de incógnito / privadas: <strong id="incoState">…</strong></p>
+      <p id="incoHelp" class="hint" hidden></p>
+      <div class="row"><button id="incoOpen" class="primary" hidden>Abrir los ajustes de la extensión</button></div>
+      <p id="pinHelp" class="hint" style="margin-top:14px"></p>
     </section>
 
     <section>
@@ -67,6 +78,7 @@
     <p class="version">Versión <span id="ver"></span></p>
   </main>
   <script src="theme.js"></script>
+  <script src="folderpicker.js"></script>
   <script src="options.js"></script>
 </body>
 </html>
