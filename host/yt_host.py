@@ -7,6 +7,7 @@ El navegador lo arranca vía Native Messaging y le habla por stdin/stdout
 import json
 import os
 import platform
+import re
 import shutil
 import struct
 import subprocess
@@ -30,45 +31,9 @@ if platform.system() == "Windows":
 _ytdlp = None
 
 # Carpeta por defecto: Descargas, sin crear subcarpetas. El usuario puede elegir otra en Ajustes.
+# (Se recalcula más abajo con la ruta real de Windows, por si la carpeta Descargas está en otro disco.)
 DOWNLOAD_DIR = os.path.join(os.path.expanduser("~"), "Downloads")
 
-# Diálogo nativo para elegir carpeta. Corre en un proceso aparte para no bloquear el host.
-PICKER = r"""
-import sys, tkinter as tk
-from tkinter import filedialog
-root = tk.Tk()
-root.title("Capy Downloader")
-root.attributes("-alpha", 0.0)   # ventana dueña invisible, centrada en la pantalla
-root.geometry("1x1+%d+%d" % (root.winfo_screenwidth() // 2, root.winfo_screenheight() // 3))
-root.attributes("-topmost", True)
-root.update()
-if sys.platform == "win32":
-    # Windows no deja que un programa en segundo plano se ponga al frente, y por eso
-    # el selector a veces se abría detrás del navegador. Se "engancha" al hilo de la
-    # ventana activa un instante para poder traer la ventana al frente de forma fiable.
-    try:
-        import ctypes
-        user32, kernel32 = ctypes.windll.user32, ctypes.windll.kernel32
-        hwnd = user32.GetParent(root.winfo_id()) or root.winfo_id()
-        fg = user32.GetForegroundWindow()
-        fg_thread = user32.GetWindowThreadProcessId(fg, None)
-        me = kernel32.GetCurrentThreadId()
-        attached = fg_thread and fg_thread != me and user32.AttachThreadInput(me, fg_thread, True)
-        user32.ShowWindow(hwnd, 5)
-        user32.BringWindowToTop(hwnd)
-        user32.SetForegroundWindow(hwnd)
-        if attached:
-            user32.AttachThreadInput(me, fg_thread, False)
-    except Exception:
-        pass
-root.lift()
-root.focus_force()
-root.update()
-path = filedialog.askdirectory(parent=root, initialdir=sys.argv[1] or None,
-                               title="Elige dónde guardar las descargas", mustexist=True)
-root.destroy()
-sys.stdout.write(path or "")
-"""
 _LOCK = threading.Lock()
 MAX_MESSAGE = 1024 * 1024  # 1 MB: ningún mensaje legítimo de la extensión se acerca a esto
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "tiktok.com", "instagram.com")
@@ -82,7 +47,6 @@ NO_WINDOW = 0x08000000 if platform.system() == "Windows" else 0  # CREATE_NO_WIN
 _update_done = threading.Event()
 _active = {"downloads": 0}
 _active_lock = threading.Lock()
-_picker_lock = threading.Lock()  # un solo selector de carpetas abierto a la vez
 AUDIO_FORMATS = ("mp3", "m4a", "original")
 
 
@@ -342,21 +306,104 @@ def resolve_folder(folder):
     return folder
 
 
-def pick_folder(initial):
-    if not _picker_lock.acquire(blocking=False):
-        raise RuntimeError("Ya hay una ventana abierta para elegir carpeta. Búscala en la barra de tareas.")
+def _known_folder(guid):
+    """Ruta real de una carpeta especial de Windows (respeta si la moviste a otro disco u OneDrive)."""
     try:
-        start = initial if initial and os.path.isdir(initial) else DOWNLOAD_DIR
-        res = subprocess.run([sys.executable, "-c", PICKER, start], capture_output=True,
-                             text=True, encoding="utf-8", creationflags=NO_WINDOW, timeout=600)
-    except subprocess.TimeoutExpired:
-        raise RuntimeError("El selector de carpetas se cerró por inactividad. Vuelve a intentarlo.")
-    finally:
-        _picker_lock.release()
-    if res.returncode != 0:
-        raise RuntimeError("No pude abrir el selector de carpetas. Escribe la ruta a mano en Ajustes.")
-    path = res.stdout.strip()
-    return os.path.normpath(path) if path else None
+        import ctypes
+        import uuid
+        from ctypes import wintypes
+
+        class GUID(ctypes.Structure):
+            _fields_ = [("Data1", wintypes.DWORD), ("Data2", wintypes.WORD),
+                        ("Data3", wintypes.WORD), ("Data4", ctypes.c_ubyte * 8)]
+
+        u = uuid.UUID(guid)
+        g = GUID(u.time_low, u.time_mid, u.time_hi_version, (ctypes.c_ubyte * 8)(*u.bytes[8:]))
+        out = ctypes.c_wchar_p()
+        if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(g), 0, None, ctypes.byref(out)) != 0:
+            return None
+        try:
+            return out.value
+        finally:
+            ctypes.windll.ole32.CoTaskMemFree(out)
+    except Exception:
+        return None
+
+
+_PLACES = [  # (nombre, carpeta de Windows, nombre de la carpeta en macOS/Linux)
+    ("Descargas", "{374DE290-123F-4565-9164-39C4925E467B}", "Downloads"),
+    ("Escritorio", "{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}", "Desktop"),
+    ("Documentos", "{FDD39AD0-238F-46AF-ADB4-6C85480369C7}", "Documents"),
+    ("Videos", "{18989B1D-99B5-455B-841C-AB7C74E4DDFC}", "Videos"),
+    ("Música", "{4BD8D571-6D19-48D3-BE97-422220080E43}", "Music"),
+]
+
+
+def places():
+    home = os.path.expanduser("~")
+    out = []
+    for label, guid, name in _PLACES:
+        path = _known_folder(guid) if platform.system() == "Windows" else None
+        path = path or os.path.join(home, name)
+        if os.path.isdir(path):
+            out.append({"name": label, "path": path})
+    out.append({"name": "Carpeta personal", "path": home})
+    return out
+
+
+def drives():
+    if platform.system() == "Windows":
+        return [{"name": f"Disco {c}:", "path": f"{c}:\\"} for c in "CDEFGHIJKLMNOPQRSTUVWXYZ"
+                if os.path.exists(f"{c}:\\")]
+    return [{"name": "Raíz /", "path": "/"}]
+
+
+def _hidden(entry):
+    if entry.name.startswith((".", "$")):
+        return True
+    attrs = getattr(entry.stat(follow_symlinks=False), "st_file_attributes", 0)
+    return bool(attrs & 0x6)  # oculta (2) o de sistema (4)
+
+
+def list_dirs(path):
+    """Subcarpetas de una carpeta, para el explorador propio de la extensión."""
+    path = os.path.normpath(os.path.expanduser(path)) if path else DOWNLOAD_DIR
+    if not os.path.isdir(path):
+        path = DOWNLOAD_DIR
+    dirs = []
+    try:
+        with os.scandir(path) as it:
+            for e in it:
+                try:
+                    if e.is_dir(follow_symlinks=False) and not _hidden(e):
+                        dirs.append({"name": e.name, "path": os.path.join(path, e.name)})
+                except OSError:
+                    continue
+    except PermissionError:
+        raise RuntimeError("No tienes permiso para abrir esta carpeta.")
+    dirs.sort(key=lambda d: d["name"].lower())
+    parent = os.path.dirname(path)
+    if parent == path:
+        parent = None  # raíz del disco
+    return {"path": path, "parent": parent, "dirs": dirs[:1000],
+            "places": places(), "drives": drives()}
+
+
+INVALID_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def make_dir(path, name):
+    name = (name or "").strip().rstrip(". ")
+    if not name or name in (".", "..") or INVALID_NAME.search(name):
+        raise RuntimeError("Ese nombre de carpeta no es válido.")
+    if not os.path.isdir(path or ""):
+        raise RuntimeError("La carpeta donde quieres crearla no existe.")
+    new = os.path.join(path, name)
+    try:
+        os.makedirs(new, exist_ok=True)
+    except PermissionError:
+        raise RuntimeError("No tienes permiso para crear carpetas aquí.")
+    return new
 
 
 def download(job_id, url, kind, height=None, audio="mp3", folder=None):
@@ -469,8 +516,10 @@ def handle(msg):
         elif action == "open":
             open_in_explorer(msg.get("path"), msg.get("folder"))
             send({"id": mid, "type": "ok"})
-        elif action == "pick_folder":
-            send({"id": mid, "type": "folder", "path": pick_folder(msg.get("initial"))})
+        elif action == "list_dirs":
+            send({"id": mid, "type": "dirs", "data": list_dirs(msg.get("path"))})
+        elif action == "make_dir":
+            send({"id": mid, "type": "folder", "path": make_dir(msg.get("path"), msg.get("name"))})
         elif action == "default_dir":
             send({"id": mid, "type": "folder", "path": DOWNLOAD_DIR})
         elif action == "status":
@@ -535,6 +584,10 @@ def handle(msg):
         if "ffmpeg" in text.lower() and not has_ffmpeg():
             text = "Falta FFmpeg. " + text
         send({"id": mid, "type": "error", "error": text})
+
+
+if platform.system() == "Windows":
+    DOWNLOAD_DIR = _known_folder(_PLACES[0][1]) or DOWNLOAD_DIR
 
 
 def main():
